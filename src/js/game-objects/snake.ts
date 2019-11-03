@@ -4,7 +4,7 @@ import 'phaser';
 import { GameObjects } from 'phaser';
 import EventManager from '../util/event-manager';
 
-const FOLLOW_DISTANCE = 5;
+var FOLLOW_DISTANCE = 5;
 
 type SnakeProps = {
   scene: Phaser.Scene;
@@ -55,8 +55,8 @@ export class Body extends Phaser.GameObjects.Rectangle {
     y,
     parent,
     previous,
-    height = 15,
-    width = 15,
+    height = 10,
+    width = 10,
     color = 0xff000,
     alpha = 0.5
   }) {
@@ -144,7 +144,7 @@ export class Snake extends Phaser.GameObjects.Group {
       'Need exactly three keys to construct Snake'
     );
     this.eventManager = EventManager.getInstance();
-    this.eventManager.on('EGG_COLLECTED', this.grow, this);
+    this.eventManager.on('EGG_COLLECTED', this.grow5, this);
     this.moving = false;
     this.invulnerabilityRemaining = 5000;
     this.left = keys[0];
@@ -168,6 +168,14 @@ export class Snake extends Phaser.GameObjects.Group {
     this.children.each(c => this.scene.add.existing(c));
   }
 
+  grow5() {
+    this.grow();
+    this.grow();
+    this.grow();
+    this.grow();
+    this.grow();
+  }
+
   grow() {
     const previous = this.tail === undefined ? this.head : this.tail;
     const newBody = new Body({
@@ -182,7 +190,8 @@ export class Snake extends Phaser.GameObjects.Group {
     previous.next = newBody;
     this.tail = newBody;
     this.scene.add.existing(newBody);
-    this.eventManager.emit('NEW_BODY', newBody)
+    this.eventManager.emit('NEW_BODY', newBody);
+    this.speed += 1;
   }
 
   collide() {
@@ -231,5 +240,13 @@ export class Snake extends Phaser.GameObjects.Group {
       this.head.next.update();
     }
     this.scene.physics.world.wrap(this.head, 0);
+    if(Phaser.Input.Keyboard.JustDown(this.scene.input.keyboard.addKey('Z'))) {
+      FOLLOW_DISTANCE++;
+      console.log('follow distance: ', FOLLOW_DISTANCE);
+    }
+    if(Phaser.Input.Keyboard.JustDown(this.scene.input.keyboard.addKey('X'))) {
+      FOLLOW_DISTANCE--;
+      console.log('follow distance: ', FOLLOW_DISTANCE);
+    }
   }
 }

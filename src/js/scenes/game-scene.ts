@@ -94,7 +94,7 @@ export default class GameScene extends Phaser.Scene {
   }
 
   update(time, delta) {
-    console.log('Frame Rate: ', (1000 / delta).toFixed(2), 'FPS. Bodies: ', this.bodies.children.size);
+    // console.log('Frame Rate: ', (1000 / delta).toFixed(2), 'FPS. Bodies: ', this.bodies.children.size);
     for (var snake of this.snakes) {
       snake.update(time, delta);
     }
