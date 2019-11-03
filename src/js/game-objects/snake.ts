@@ -25,8 +25,8 @@ class Head extends Phaser.GameObjects.Rectangle {
     scene,
     x,
     y,
-    height = 50,
-    width = 50,
+    height = 10,
+    width = 10,
     color = 0xff000,
     alpha = 1.0
   }) {
@@ -56,8 +56,9 @@ export default class Snake extends Phaser.GameObjects.Group {
     this.up = keys[1];
     this.right = keys[2];
     this.angle = 0;
-    this.speed = 200;
-    this.turnSpeed = 3;
+    this.speed = 100;
+    this.turnSpeed = 5;
+    this.scene.physics.world.enable(this);
 
     this.head = new Head({ scene, x: 100, y: 100, color: headConfig.color });
 
