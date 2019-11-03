@@ -4,7 +4,7 @@ import 'phaser';
 import { GameObjects } from 'phaser';
 import EventManager from '../util/event-manager';
 
-const FOLLOW_DISTANCE = 10;
+const FOLLOW_DISTANCE = 5;
 
 type SnakeProps = {
   scene: Phaser.Scene;
@@ -12,6 +12,7 @@ type SnakeProps = {
   children?: Phaser.GameObjects.GameObject[];
   config?: Phaser.Types.GameObjects.Group.GroupConfig;
   headConfig?: { color?: number };
+  id: string;
 };
 
 export class Head extends Phaser.GameObjects.Rectangle {
@@ -32,15 +33,18 @@ export class Head extends Phaser.GameObjects.Rectangle {
     this.parent = parent;
     this.scene.physics.world.enable(this);
     this.body.setAllowGravity(false);
+    this.body.setSize(7,7)
   }
 
   freeze() {
     this.body.setVelocity(0);
-    this.next.freeze();
+    if(this.next !== undefined) {
+      this.next.freeze();
+    }
   }
 }
 
-class Body extends Phaser.GameObjects.Rectangle {
+export class Body extends Phaser.GameObjects.Rectangle {
   public body!: Phaser.Physics.Arcade.Body;
   public parent: Snake;
   public next: Body;
@@ -51,16 +55,17 @@ class Body extends Phaser.GameObjects.Rectangle {
     y,
     parent,
     previous,
-    height = 10,
-    width = 10,
+    height = 15,
+    width = 15,
     color = 0xff000,
-    alpha = 1.0
+    alpha = 0.5
   }) {
     super(scene, x, y, height, width, color, alpha);
     this.parent = parent;
     this.previous = previous;
     this.scene.physics.world.enable(this);
     this.body.setAllowGravity(false);
+    this.body.setSize(7,7);
   }
 
   setNext(next: Body) {
@@ -76,7 +81,7 @@ class Body extends Phaser.GameObjects.Rectangle {
 
   update() {
     this.fillAlpha = this.previous.fillAlpha;
-    if (this.parent.moving && this.distanceToPrevious() > FOLLOW_DISTANCE) {
+    if (this.parent.moving && this.distanceToPrevious() >= FOLLOW_DISTANCE) {
       // If previous node has screen wrapped  target its position on the opposite side of the screen
       const width = this.scene.game.config.width as number;
       const targetX = this.getClosest(
@@ -92,7 +97,7 @@ class Body extends Phaser.GameObjects.Rectangle {
         this.previous.y + width
       );
       this.scene.physics.moveTo;
-      this.scene.physics.moveTo(this, targetX, targetY, this.parent.speed + 1);
+      this.scene.physics.moveTo(this, targetX, targetY, this.parent.speed);
     }
     if (this.next != undefined) {
       this.next.update();
@@ -119,6 +124,7 @@ class Body extends Phaser.GameObjects.Rectangle {
 
 export class Snake extends Phaser.GameObjects.Group {
   eventManager: EventManager;
+  id: string;
   moving: boolean;
   invulnerabilityRemaining: number;
   head: Head;
@@ -130,13 +136,15 @@ export class Snake extends Phaser.GameObjects.Group {
   angle: number;
   speed: number;
   turnSpeed: number;
-  constructor({ scene, keys, children, config, headConfig = {} }: SnakeProps) {
+  constructor({ scene, keys, children, config, headConfig = {}, id }: SnakeProps) {
     super(scene, children, config);
+    this.id = id;
     console.assert(
       keys.length === 3,
       'Need exactly three keys to construct Snake'
     );
     this.eventManager = EventManager.getInstance();
+    this.eventManager.on('EGG_COLLECTED', this.grow, this);
     this.moving = false;
     this.invulnerabilityRemaining = 5000;
     this.left = keys[0];
@@ -156,11 +164,6 @@ export class Snake extends Phaser.GameObjects.Group {
     });
 
     this.scene.add.existing(this.head);
-    this.grow();
-    this.grow();
-    this.grow();
-    this.grow();
-    this.grow();
 
     this.children.each(c => this.scene.add.existing(c));
   }
@@ -179,9 +182,21 @@ export class Snake extends Phaser.GameObjects.Group {
     previous.next = newBody;
     this.tail = newBody;
     this.scene.add.existing(newBody);
+    this.eventManager.emit('NEW_BODY', newBody)
   }
 
   collide() {
+    if (this.invulnerabilityRemaining <= 0) {
+      this.moving = false;
+      this.head.freeze();
+    }
+  }
+
+  collideBody(body: Body) {
+    // Ignore hits with a heads first body part
+    if(body.parent === this && body === this.head.next) {
+      return;
+    }
     if (this.invulnerabilityRemaining <= 0) {
       this.moving = false;
       this.head.freeze();
