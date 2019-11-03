@@ -1,11 +1,15 @@
 'use strict';
 
 import 'phaser';
-import Snake from '../game-objects/snake';
+import {Snake, Head} from '../game-objects/snake';
+import EventManager from '../util/event-manager';
 
 export default class GameScene extends Phaser.Scene {
-  snake: Snake;
-  snake2: Snake;
+  eventManager: EventManager;
+  snakes: Snake[];
+  heads: Phaser.GameObjects.Group;
+  bodies: Phaser.GameObjects.Group;
+  powerUps: Phaser.GameObjects.Group;
   staticLayer: Phaser.Tilemaps.StaticTilemapLayer;
 
   constructor() {
@@ -20,31 +24,30 @@ export default class GameScene extends Phaser.Scene {
   }
 
   create() {
+    this.eventManager = EventManager.getInstance();
+    this.snakes = [];
+    this.heads = this.add.group();
+    this.bodies = this.add.group();
+    this.powerUps = this.add.group();
     this.initPlayers();
     this.initMap();
-
-    // var rec = this.physics.add.rectangle(200, 200, 100, 100, 0x00ff00, 1);
-    this.physics.add.collider(this.snake.head, this.staticLayer, () =>
-      console.log('collide')
-    );
-    this.physics.add.collider(this.snake2.head, this.staticLayer, () =>
-      console.log('collide')
-    );
-    this.physics.add.collider(this.snake.head, this.snake2.head, () =>
-      console.log('collide')
-    );
+    this.initColliders();
   }
 
   initPlayers() {
-    this.snake = new Snake({
-      scene: this,
-      keys: [
-        this.input.keyboard.addKey('A'),
-        this.input.keyboard.addKey('S'),
-        this.input.keyboard.addKey('D')
-      ]
-    });
-    this.snake2 = new Snake({
+    // var snake = new Snake({
+    //   scene: this,
+    //   keys: [
+    //     this.input.keyboard.addKey('A'),
+    //     this.input.keyboard.addKey('S'),
+    //     this.input.keyboard.addKey('D')
+    //   ]
+    // });
+    // this.heads.add(snake.head);
+    // this.bodies.addMultiple(snake.bodies);
+    // this.snakes.push(snake);
+
+    var snake2 = new Snake({
       scene: this,
       keys: [
         this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.LEFT),
@@ -53,6 +56,9 @@ export default class GameScene extends Phaser.Scene {
       ],
       headConfig: { color: 0xff0000 }
     });
+    this.heads.add(snake2.head);
+    this.bodies.addMultiple(snake2.bodies);
+    this.snakes.push(snake2);
   }
 
   initMap() {
@@ -70,8 +76,19 @@ export default class GameScene extends Phaser.Scene {
     // });
   }
 
-  update() {
-    this.snake.update();
-    this.snake2.update();
+  initColliders() {
+    this.physics.add.collider(this.heads, this.staticLayer, (head) =>
+      (head as Head).parent.collide()
+    );
+    this.physics.add.collider(this.heads, this.heads, () =>
+      console.log('collide')
+    );
+    this.physics.add.collider(this.heads, this.bodies, () => undefined);
+  }
+
+  update(time, delta) {
+    for (var snake of this.snakes) {
+      snake.update(time, delta);
+    }
   }
 }

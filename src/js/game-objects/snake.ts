@@ -1,44 +1,129 @@
 'use strict';
 
 import 'phaser';
+import { GameObjects } from 'phaser';
+import EventManager from '../util/event-manager';
+
+const FOLLOW_DISTANCE = 10;
 
 type SnakeProps = {
   scene: Phaser.Scene;
   keys: Phaser.Input.Keyboard.Key[];
   children?: Phaser.GameObjects.GameObject[];
   config?: Phaser.Types.GameObjects.Group.GroupConfig;
-  headConfig?: {color?: number}
+  headConfig?: { color?: number };
 };
 
-type HeadProps = {
-  scene: Phaser.Scene;
-  x: number;
-  y: number;
-  width?: number;
-  height?: number;
-  color?: number;
-  alpha?: number;
-};
-class Head extends Phaser.GameObjects.Rectangle {
+export class Head extends Phaser.GameObjects.Rectangle {
   public body!: Phaser.Physics.Arcade.Body;
+  public next: Body;
+  public parent: Snake;
   constructor({
     scene,
     x,
     y,
+    parent,
+    height = 10,
+    width = 10,
+    color = 0xff000,
+    alpha = 0.5
+  }) {
+    super(scene, x, y, height, width, color, alpha);
+    this.parent = parent;
+    this.scene.physics.world.enable(this);
+    this.body.setAllowGravity(false);
+  }
+
+  freeze() {
+    this.body.setVelocity(0);
+    this.next.freeze();
+  }
+}
+
+class Body extends Phaser.GameObjects.Rectangle {
+  public body!: Phaser.Physics.Arcade.Body;
+  public parent: Snake;
+  public next: Body;
+  public previous: Phaser.GameObjects.Shape;
+  constructor({
+    scene,
+    x,
+    y,
+    parent,
+    previous,
     height = 10,
     width = 10,
     color = 0xff000,
     alpha = 1.0
   }) {
     super(scene, x, y, height, width, color, alpha);
+    this.parent = parent;
+    this.previous = previous;
     this.scene.physics.world.enable(this);
     this.body.setAllowGravity(false);
   }
+
+  setNext(next: Body) {
+    this.next = next;
+  }
+
+  freeze() {
+    this.body.setVelocity(0);
+    if(this.next !== undefined) {
+      this.next.freeze();
+    }
+  }
+
+  update() {
+    this.fillAlpha = this.previous.fillAlpha;
+    if (this.parent.moving && this.distanceToPrevious() > FOLLOW_DISTANCE) {
+      // If previous node has screen wrapped  target its position on the opposite side of the screen
+      const width = this.scene.game.config.width as number;
+      const targetX = this.getClosest(
+        this.x,
+        this.previous.x - width,
+        this.previous.x,
+        this.previous.x + width
+      );
+      const targetY = this.getClosest(
+        this.y,
+        this.previous.y - width,
+        this.previous.y,
+        this.previous.y + width
+      );
+      this.scene.physics.moveTo;
+      this.scene.physics.moveTo(this, targetX, targetY, this.parent.speed + 1);
+    }
+    if (this.next != undefined) {
+      this.next.update();
+    }
+    this.scene.physics.world.wrap(this, 0);
+  }
+
+  // return the value closest to goal.
+  getClosest(goal, ...args): number {
+    return args.reduce(function(prev, curr) {
+      return Math.abs(curr - goal) < Math.abs(prev - goal) ? curr : prev;
+    });
+  }
+
+  distanceToPrevious() {
+    return Phaser.Math.Distance.Between(
+      this.x,
+      this.y,
+      this.previous.x,
+      this.previous.y
+    );
+  }
 }
 
-export default class Snake extends Phaser.GameObjects.Group {
+export class Snake extends Phaser.GameObjects.Group {
+  eventManager: EventManager;
   moving: boolean;
+  invulnerabilityRemaining: number;
   head: Head;
+  bodies: Body[];
+  tail: Body;
   left: Phaser.Input.Keyboard.Key;
   up: Phaser.Input.Keyboard.Key;
   right: Phaser.Input.Keyboard.Key;
@@ -51,22 +136,65 @@ export default class Snake extends Phaser.GameObjects.Group {
       keys.length === 3,
       'Need exactly three keys to construct Snake'
     );
+    this.eventManager = EventManager.getInstance();
     this.moving = false;
+    this.invulnerabilityRemaining = 5000;
     this.left = keys[0];
     this.up = keys[1];
     this.right = keys[2];
     this.angle = 0;
     this.speed = 100;
     this.turnSpeed = 5;
-    this.scene.physics.world.enable(this);
 
-    this.head = new Head({ scene, x: 100, y: 100, color: headConfig.color });
+    this.bodies = [];
+    this.head = new Head({
+      scene,
+      parent: this,
+      x: 100,
+      y: 100,
+      color: headConfig.color
+    });
 
     this.scene.add.existing(this.head);
+    this.grow();
+    this.grow();
+    this.grow();
+    this.grow();
+    this.grow();
+
     this.children.each(c => this.scene.add.existing(c));
   }
 
-  update() {
+  grow() {
+    const previous = this.tail === undefined ? this.head : this.tail;
+    const newBody = new Body({
+      scene: this.scene,
+      x: previous.x,
+      y: previous.y,
+      parent: this,
+      previous,
+      color: this.head.fillColor
+    });
+    this.bodies.push(newBody);
+    previous.next = newBody;
+    this.tail = newBody;
+    this.scene.add.existing(newBody);
+  }
+
+  collide() {
+    if (this.invulnerabilityRemaining <= 0) {
+      this.moving = false;
+      this.head.freeze();
+    }
+  }
+
+  update(time, delta) {
+    if (this.moving && this.invulnerabilityRemaining > 0) {
+      this.head.fillAlpha = 0.5;
+      this.invulnerabilityRemaining -= delta;
+    } else {
+      this.head.fillAlpha = 1.0;
+    }
     if (this.up.isDown) {
       this.moving = true;
     }
@@ -83,6 +211,10 @@ export default class Snake extends Phaser.GameObjects.Group {
         this.head.body.velocity
       );
     }
-    this.scene.physics.world.wrap(this.head, 30);
+
+    if (this.moving && this.head.next !== undefined) {
+      this.head.next.update();
+    }
+    this.scene.physics.world.wrap(this.head, 0);
   }
 }
