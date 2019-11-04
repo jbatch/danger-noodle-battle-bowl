@@ -4,7 +4,7 @@ import 'phaser';
 import { GameObjects } from 'phaser';
 import EventManager from '../util/event-manager';
 
-var FOLLOW_DISTANCE = 5;
+var FOLLOW_DISTANCE = 10;
 
 type SnakeProps = {
   scene: Phaser.Scene;
@@ -81,27 +81,29 @@ export class Body extends Phaser.GameObjects.Rectangle {
 
   update() {
     this.fillAlpha = this.previous.fillAlpha;
-    if (this.parent.moving && this.distanceToPrevious() >= FOLLOW_DISTANCE) {
+    if (!this.parent.jumping && this.parent.moving && this.distanceToPrevious() >= FOLLOW_DISTANCE) {
+      // Move next first
+      if (this.next != undefined) {
+        this.next.update();
+      }
       // If previous node has screen wrapped  target its position on the opposite side of the screen
-      const width = this.scene.game.config.width as number;
-      const targetX = this.getClosest(
-        this.x,
-        this.previous.x - width,
-        this.previous.x,
-        this.previous.x + width
-      );
-      const targetY = this.getClosest(
-        this.y,
-        this.previous.y - width,
-        this.previous.y,
-        this.previous.y + width
-      );
-      this.scene.physics.moveTo;
-      this.scene.physics.moveTo(this, targetX, targetY, this.parent.speed);
+      // const width = this.scene.game.config.width as number;
+      // const targetX = this.getClosest(
+      //   this.x,
+      //   this.previous.x - width,
+      //   this.previous.x,
+      //   this.previous.x + width
+      // );
+      // const targetY = this.getClosest(
+      //   this.y,
+      //   this.previous.y - width,
+      //   this.previous.y,
+      //   this.previous.y + width
+      // );
+      // this.scene.physics.moveTo(this, targetX, targetY, this.parent.speed);
+      this.setPosition(this.previous.x, this.previous.y);
     }
-    if (this.next != undefined) {
-      this.next.update();
-    }
+    
     this.scene.physics.world.wrap(this, 0);
   }
 
@@ -126,6 +128,7 @@ export class Snake extends Phaser.GameObjects.Group {
   eventManager: EventManager;
   id: string;
   moving: boolean;
+  jumping: boolean;
   invulnerabilityRemaining: number;
   head: Head;
   bodies: Body[];
@@ -144,8 +147,9 @@ export class Snake extends Phaser.GameObjects.Group {
       'Need exactly three keys to construct Snake'
     );
     this.eventManager = EventManager.getInstance();
-    this.eventManager.on('EGG_COLLECTED', this.grow5, this);
+    this.eventManager.on('EGG_COLLECTED', this.handleEggCollected, this);
     this.moving = false;
+    this.jumping = false;
     this.invulnerabilityRemaining = 5000;
     this.left = keys[0];
     this.up = keys[1];
@@ -168,12 +172,14 @@ export class Snake extends Phaser.GameObjects.Group {
     this.children.each(c => this.scene.add.existing(c));
   }
 
-  grow5() {
-    this.grow();
-    this.grow();
-    this.grow();
-    this.grow();
-    this.grow();
+  handleEggCollected(playerId: String) {
+    if(playerId === this.id) {
+      this.grow();
+      // this.grow();
+      // this.grow();
+      // this.grow();
+      // this.grow();
+    }
   }
 
   grow() {
@@ -191,11 +197,11 @@ export class Snake extends Phaser.GameObjects.Group {
     this.tail = newBody;
     this.scene.add.existing(newBody);
     this.eventManager.emit('NEW_BODY', newBody);
-    this.speed += 1;
+    this.speed += 2;
   }
 
   collide() {
-    if (this.invulnerabilityRemaining <= 0) {
+    if (this.invulnerabilityRemaining <= 0 && !this.jumping) {
       this.moving = false;
       this.head.freeze();
     }
@@ -206,21 +212,28 @@ export class Snake extends Phaser.GameObjects.Group {
     if(body.parent === this && body === this.head.next) {
       return;
     }
-    if (this.invulnerabilityRemaining <= 0) {
+    if (this.invulnerabilityRemaining <= 0 && !this.jumping) {
       this.moving = false;
       this.head.freeze();
     }
   }
 
   update(time, delta) {
+    console.log('Jumping: ', this.jumping);
     if (this.moving && this.invulnerabilityRemaining > 0) {
       this.head.fillAlpha = 0.5;
       this.invulnerabilityRemaining -= delta;
     } else {
       this.head.fillAlpha = 1.0;
     }
-    if (this.up.isDown) {
-      this.moving = true;
+    if (Phaser.Input.Keyboard.JustDown(this.up)) {
+      console.log('UP')
+      if(!this.moving) {
+        this.moving = true;
+      } else {
+        this.jumping = true;
+        var timer = this.scene.time.delayedCall(1000, () => this.jumping = false, undefined, this);
+      }
     }
     if (this.left.isDown) {
       this.angle -= this.turnSpeed;
@@ -247,6 +260,9 @@ export class Snake extends Phaser.GameObjects.Group {
     if(Phaser.Input.Keyboard.JustDown(this.scene.input.keyboard.addKey('X'))) {
       FOLLOW_DISTANCE--;
       console.log('follow distance: ', FOLLOW_DISTANCE);
+    }
+    if(Phaser.Input.Keyboard.JustDown(this.scene.input.keyboard.addKey('G'))) {
+      this.grow();
     }
   }
 }

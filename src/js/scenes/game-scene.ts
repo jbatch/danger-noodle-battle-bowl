@@ -13,6 +13,8 @@ export default class GameScene extends Phaser.Scene {
   bodies: Phaser.GameObjects.Group;
   collectables: Phaser.GameObjects.Group;
   staticLayer: Phaser.Tilemaps.StaticTilemapLayer;
+  playerSpawns: { x: number; y: number }[];
+  collectableSpawns: { x: number; y: number }[];
 
   constructor() {
     super('GameScene');
@@ -32,8 +34,10 @@ export default class GameScene extends Phaser.Scene {
     this.heads = this.add.group();
     this.bodies = this.add.group();
     this.collectables = this.add.group();
-    this.initPlayers();
+    this.playerSpawns = [];
+    this.collectableSpawns = [];
     this.initMap();
+    this.initPlayers();
     this.initColliders();
   }
 
@@ -44,7 +48,8 @@ export default class GameScene extends Phaser.Scene {
     //     this.input.keyboard.addKey('A'),
     //     this.input.keyboard.addKey('S'),
     //     this.input.keyboard.addKey('D')
-    //   ]
+    //   ],
+    //   id: 'Player 2'
     // });
     // this.heads.add(snake.head);
     // this.bodies.addMultiple(snake.bodies);
@@ -61,7 +66,11 @@ export default class GameScene extends Phaser.Scene {
       id: 'Player 1'
     });
     this.heads.add(snake2.head);
-    this.eventManager.on('NEW_BODY', (body: Body) => this.bodies.add(body), this);
+    this.eventManager.on(
+      'NEW_BODY',
+      (body: Body) => this.bodies.add(body),
+      this
+    );
     this.snakes.push(snake2);
   }
 
@@ -72,16 +81,56 @@ export default class GameScene extends Phaser.Scene {
     // Create layers
     this.staticLayer = tilemap.createStaticLayer('static', tileset, 0, 0);
     this.staticLayer.setCollisionByProperty({ solid: true });
+
+    // Get object data
+    const playerObjects = tilemap.createFromObjects(
+      'object',
+      'player',
+      {},
+      this
+    );
+
+    for (var o of playerObjects) {
+      this.playerSpawns.push({ x: o.x, y: o.y });
+      o.destroy();
+    }
+    console.log(this.playerSpawns);
+
+    const collectableObjects = tilemap.createFromObjects(
+      'object',
+      'collectable',
+      {},
+      this
+    );
+    for (var o of collectableObjects) {
+      this.collectableSpawns.push({ x: o.x, y: o.y });
+      o.destroy();
+    }
+    console.log(this.collectableSpawns);
   }
 
   initColliders() {
-    this.physics.add.collider(this.heads, this.staticLayer, (head: Head) =>
-      head.parent.collide()
+    this.physics.add.collider(
+      this.heads,
+      this.staticLayer,
+      (head: Head) => head.parent.collide(),
+      (head: Head) => !head.parent.jumping
+    );
+    this.physics.add.overlap(
+      this.heads,
+      this.staticLayer,
+      (head: Head) => head.parent.collide(),
+      (head: Head, other: any) => !head.parent.jumping && other.index != -1
     );
     this.physics.add.collider(this.heads, this.heads, () =>
       console.log('collide')
     );
-    this.physics.add.collider(this.heads, this.bodies, (head: Head, body: Body) => head.parent.collideBody(body));
+    this.physics.add.collider(
+      this.heads,
+      this.bodies,
+      (head: Head, body: Body) => head.parent.collideBody(body),
+      (head: Head) => !head.parent.jumping
+    );
     this.physics.add.overlap(
       this.heads,
       this.collectables,
@@ -90,7 +139,18 @@ export default class GameScene extends Phaser.Scene {
   }
 
   spawnCollectable() {
-    this.collectables.add(new Egg({scene: this, x: 300, y: 300, texture: 'egg'}));
+    const i = Phaser.Math.Between(0, this.collectableSpawns.length - 1);
+    console.log(i);
+    var spawn = this.collectableSpawns[i];
+    console.log('i: ', i, ' spawn: ', JSON.stringify(spawn));
+    this.collectables.add(
+      new Egg({
+        scene: this,
+        x: this.collectableSpawns[i].x,
+        y: this.collectableSpawns[i].y,
+        texture: 'egg'
+      })
+    );
   }
 
   update(time, delta) {
@@ -98,7 +158,7 @@ export default class GameScene extends Phaser.Scene {
     for (var snake of this.snakes) {
       snake.update(time, delta);
     }
-    if(Phaser.Input.Keyboard.JustDown(this.input.keyboard.addKey('E'))) {
+    if (Phaser.Input.Keyboard.JustDown(this.input.keyboard.addKey('E'))) {
       this.spawnCollectable();
     }
   }
