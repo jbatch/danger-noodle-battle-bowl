@@ -1,18 +1,15 @@
 'use strict';
 
 import 'phaser';
-import { GameObjects } from 'phaser';
+import Player from './player';
 import EventManager from '../util/event-manager';
 
 var FOLLOW_DISTANCE = 10;
 
 type SnakeProps = {
   scene: Phaser.Scene;
-  keys: Phaser.Input.Keyboard.Key[];
-  children?: Phaser.GameObjects.GameObject[];
-  config?: Phaser.Types.GameObjects.Group.GroupConfig;
-  headConfig?: { color?: number };
-  id: string;
+  player: Player;
+  color: number;
 };
 
 export class Head extends Phaser.GameObjects.Rectangle {
@@ -124,7 +121,8 @@ export class Body extends Phaser.GameObjects.Rectangle {
   }
 }
 
-export class Snake extends Phaser.GameObjects.Group {
+export class Snake {
+  scene: Phaser.Scene;
   eventManager: EventManager;
   id: string;
   moving: boolean;
@@ -139,21 +137,17 @@ export class Snake extends Phaser.GameObjects.Group {
   angle: number;
   speed: number;
   turnSpeed: number;
-  constructor({ scene, keys, children, config, headConfig = {}, id }: SnakeProps) {
-    super(scene, children, config);
-    this.id = id;
-    console.assert(
-      keys.length === 3,
-      'Need exactly three keys to construct Snake'
-    );
+  constructor({ scene, player, color }: SnakeProps) {
+    this.scene = scene;
+    this.id = player.id;
     this.eventManager = EventManager.getInstance();
     this.eventManager.on('EGG_COLLECTED', this.handleEggCollected, this);
     this.moving = false;
     this.jumping = false;
     this.invulnerabilityRemaining = 5000;
-    this.left = keys[0];
-    this.up = keys[1];
-    this.right = keys[2];
+    this.left = this.scene.input.keyboard.addKey(player.keys[0]);
+    this.up = this.scene.input.keyboard.addKey(player.keys[1]);
+    this.right = this.scene.input.keyboard.addKey(player.keys[2]);
     this.angle = 0;
     this.speed = 100;
     this.turnSpeed = 5;
@@ -164,21 +158,19 @@ export class Snake extends Phaser.GameObjects.Group {
       parent: this,
       x: 100,
       y: 100,
-      color: headConfig.color
+      color
     });
 
     this.scene.add.existing(this.head);
-
-    this.children.each(c => this.scene.add.existing(c));
   }
 
   handleEggCollected(playerId: String) {
     if(playerId === this.id) {
       this.grow();
-      // this.grow();
-      // this.grow();
-      // this.grow();
-      // this.grow();
+      this.grow();
+      this.grow();
+      this.grow();
+      this.grow();
     }
   }
 
@@ -219,7 +211,6 @@ export class Snake extends Phaser.GameObjects.Group {
   }
 
   update(time, delta) {
-    console.log('Jumping: ', this.jumping);
     if (this.moving && this.invulnerabilityRemaining > 0) {
       this.head.fillAlpha = 0.5;
       this.invulnerabilityRemaining -= delta;
@@ -227,7 +218,6 @@ export class Snake extends Phaser.GameObjects.Group {
       this.head.fillAlpha = 1.0;
     }
     if (Phaser.Input.Keyboard.JustDown(this.up)) {
-      console.log('UP')
       if(!this.moving) {
         this.moving = true;
       } else {
@@ -260,9 +250,6 @@ export class Snake extends Phaser.GameObjects.Group {
     if(Phaser.Input.Keyboard.JustDown(this.scene.input.keyboard.addKey('X'))) {
       FOLLOW_DISTANCE--;
       console.log('follow distance: ', FOLLOW_DISTANCE);
-    }
-    if(Phaser.Input.Keyboard.JustDown(this.scene.input.keyboard.addKey('G'))) {
-      this.grow();
     }
   }
 }
