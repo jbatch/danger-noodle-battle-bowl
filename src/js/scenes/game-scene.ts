@@ -4,6 +4,7 @@ import 'phaser';
 import EventManager from '../util/event-manager';
 import PlayerManager from '../util/player-manager';
 import { StateManager } from '../util/state-manager';
+import  SettingsManager  from '../util/settings-manager';
 import Map from '../game-objects/map';
 import Player from '../game-objects/player';
 import { Snake, Head, Body } from '../game-objects/snake';
@@ -13,6 +14,7 @@ export default class GameScene extends Phaser.Scene {
   eventManager: EventManager;
   stateManager: StateManager;
   playerManager: PlayerManager;
+  settingsManager: SettingsManager;
   snakes: Snake[];
   heads: Phaser.GameObjects.Group;
   bodies: Phaser.GameObjects.Group;
@@ -31,10 +33,11 @@ export default class GameScene extends Phaser.Scene {
   }
 
   create() {
+    this.cameras.main.setBackgroundColor(0x000000);
     this.eventManager = EventManager.getInstance();
-    console.log('listeners: ', this.eventManager.listeners.length);
     this.stateManager = StateManager.getInstance();
     this.playerManager = PlayerManager.getInstance(this);
+    this.settingsManager = SettingsManager.getInstance();
     this.snakes = [];
     this.heads = this.add.group();
     this.bodies = this.add.group();
@@ -96,8 +99,7 @@ export default class GameScene extends Phaser.Scene {
     if (snakesAlive.length === 1 && this.snakes.length > 1) {
       const state = this.stateManager.state;
       state.playerGainPoint(snakesAlive[0].id);
-      // TODO get max score from settings manager
-      if (state.playerAboveScore(0)) {
+      if (state.playerAboveScore(this.settingsManager.scoreLimit)) {
         // Game Over
         console.log('Game Over');
       }
@@ -135,6 +137,12 @@ export default class GameScene extends Phaser.Scene {
     }
     if (Phaser.Input.Keyboard.JustDown(this.input.keyboard.addKey('SPACE'))) {
       this.startBattle();
+    }
+    if(Phaser.Input.Keyboard.JustDown(this.input.keyboard.addKey('ESC'))) {
+      this.scene.pause();
+      this.scene.bringToTop('Settings');
+      this.scene.resume('Settings');
+      this.input.keyboard.addKey('ESC').reset();
     }
   }
 }
