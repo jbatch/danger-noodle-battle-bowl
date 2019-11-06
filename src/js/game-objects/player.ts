@@ -3,6 +3,7 @@
 import 'phaser';
 import { Snake } from './snake';
 import KeyCodes from 'phaser/src/input/keyboard/keys/KeyCodes';
+import EventManager from '../util/event-manager';
 
 const KeyCodes = Phaser.Input.Keyboard.KeyCodes;
 
@@ -15,7 +16,6 @@ const PLAYER_CONFIGS = {
 export default class Player {
   id: string;
   keys: Phaser.Input.Keyboard.Key[];
-  score: number;
   snake: Snake;
 
   constructor(
@@ -25,7 +25,6 @@ export default class Player {
     console.assert(PLAYER_CONFIGS[id] !== undefined, 'No config for player: ' + id);
     this.id = id;
     this.keys = PLAYER_CONFIGS[id].keys;
-    this.score = 0;
     this.snake = new Snake({ scene, player: this, color: PLAYER_CONFIGS[id].color });
   }
 }

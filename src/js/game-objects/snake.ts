@@ -30,12 +30,12 @@ export class Head extends Phaser.GameObjects.Rectangle {
     this.parent = parent;
     this.scene.physics.world.enable(this);
     this.body.setAllowGravity(false);
-    this.body.setSize(7,7)
+    this.body.setSize(7, 7);
   }
 
   freeze() {
     this.body.setVelocity(0);
-    if(this.next !== undefined) {
+    if (this.next !== undefined) {
       this.next.freeze();
     }
   }
@@ -62,7 +62,8 @@ export class Body extends Phaser.GameObjects.Rectangle {
     this.previous = previous;
     this.scene.physics.world.enable(this);
     this.body.setAllowGravity(false);
-    this.body.setSize(7,7);
+    this.body.setSize(7, 7);
+    this.body.setImmovable(true);
   }
 
   setNext(next: Body) {
@@ -71,14 +72,18 @@ export class Body extends Phaser.GameObjects.Rectangle {
 
   freeze() {
     this.body.setVelocity(0);
-    if(this.next !== undefined) {
+    if (this.next !== undefined) {
       this.next.freeze();
     }
   }
 
   update() {
     this.fillAlpha = this.previous.fillAlpha;
-    if (!this.parent.jumping && this.parent.moving && this.distanceToPrevious() >= FOLLOW_DISTANCE) {
+    if (
+      !this.parent.jumping &&
+      this.parent.moving &&
+      this.distanceToPrevious() >= FOLLOW_DISTANCE
+    ) {
       // Move next first
       if (this.next != undefined) {
         this.next.update();
@@ -100,7 +105,7 @@ export class Body extends Phaser.GameObjects.Rectangle {
       // this.scene.physics.moveTo(this, targetX, targetY, this.parent.speed);
       this.setPosition(this.previous.x, this.previous.y);
     }
-    
+
     this.scene.physics.world.wrap(this, 0);
   }
 
@@ -127,6 +132,7 @@ export class Snake {
   id: string;
   moving: boolean;
   jumping: boolean;
+  alive: boolean;
   invulnerabilityRemaining: number;
   head: Head;
   bodies: Body[];
@@ -144,7 +150,8 @@ export class Snake {
     this.eventManager.on('EGG_COLLECTED', this.handleEggCollected, this);
     this.moving = false;
     this.jumping = false;
-    this.invulnerabilityRemaining = 5000;
+    this.alive = true;
+    this.invulnerabilityRemaining = 2000;
     this.left = this.scene.input.keyboard.addKey(player.keys[0]);
     this.up = this.scene.input.keyboard.addKey(player.keys[1]);
     this.right = this.scene.input.keyboard.addKey(player.keys[2]);
@@ -156,8 +163,8 @@ export class Snake {
     this.head = new Head({
       scene,
       parent: this,
-      x: 100,
-      y: 100,
+      x: 0,
+      y: 0,
       color
     });
 
@@ -165,7 +172,7 @@ export class Snake {
   }
 
   handleEggCollected(playerId: String) {
-    if(playerId === this.id) {
+    if (playerId === this.id) {
       this.grow();
       this.grow();
       this.grow();
@@ -196,17 +203,22 @@ export class Snake {
     if (this.invulnerabilityRemaining <= 0 && !this.jumping) {
       this.moving = false;
       this.head.freeze();
+      this.scene.physics.world.disable(this.head);
+      this.eventManager.emit('PLAYER_DEATH', this.id);
     }
   }
 
   collideBody(body: Body) {
     // Ignore hits with a heads first body part
-    if(body.parent === this && body === this.head.next) {
+    if (body.parent === this && body === this.head.next) {
       return;
     }
     if (this.invulnerabilityRemaining <= 0 && !this.jumping) {
       this.moving = false;
+      this.alive = false;
       this.head.freeze();
+      this.scene.physics.world.disable(this.head);
+      this.eventManager.emit('PLAYER_DEATH', this.id);
     }
   }
 
@@ -218,11 +230,16 @@ export class Snake {
       this.head.fillAlpha = 1.0;
     }
     if (Phaser.Input.Keyboard.JustDown(this.up)) {
-      if(!this.moving) {
+      if (!this.moving) {
         this.moving = true;
       } else {
         this.jumping = true;
-        var timer = this.scene.time.delayedCall(1000, () => this.jumping = false, undefined, this);
+        var timer = this.scene.time.delayedCall(
+          1000,
+          () => (this.jumping = false),
+          undefined,
+          this
+        );
       }
     }
     if (this.left.isDown) {
@@ -243,11 +260,11 @@ export class Snake {
       this.head.next.update();
     }
     this.scene.physics.world.wrap(this.head, 0);
-    if(Phaser.Input.Keyboard.JustDown(this.scene.input.keyboard.addKey('Z'))) {
+    if (Phaser.Input.Keyboard.JustDown(this.scene.input.keyboard.addKey('Z'))) {
       FOLLOW_DISTANCE++;
       console.log('follow distance: ', FOLLOW_DISTANCE);
     }
-    if(Phaser.Input.Keyboard.JustDown(this.scene.input.keyboard.addKey('X'))) {
+    if (Phaser.Input.Keyboard.JustDown(this.scene.input.keyboard.addKey('X'))) {
       FOLLOW_DISTANCE--;
       console.log('follow distance: ', FOLLOW_DISTANCE);
     }

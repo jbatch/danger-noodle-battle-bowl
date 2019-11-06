@@ -1,15 +1,18 @@
 'use strict';
 
 import 'phaser';
-import { Snake, Head, Body } from '../game-objects/snake';
-import Egg from '../game-objects/egg';
 import EventManager from '../util/event-manager';
-import Collectable from '../game-objects/collectable';
+import PlayerManager from '../util/player-manager';
+import { StateManager } from '../util/state-manager';
 import Map from '../game-objects/map';
 import Player from '../game-objects/player';
+import { Snake, Head, Body } from '../game-objects/snake';
+import Collectable from '../game-objects/collectable';
 
 export default class GameScene extends Phaser.Scene {
   eventManager: EventManager;
+  stateManager: StateManager;
+  playerManager: PlayerManager;
   snakes: Snake[];
   heads: Phaser.GameObjects.Group;
   bodies: Phaser.GameObjects.Group;
@@ -29,28 +32,36 @@ export default class GameScene extends Phaser.Scene {
 
   create() {
     this.eventManager = EventManager.getInstance();
+    console.log('listeners: ', this.eventManager.listeners.length);
+    this.stateManager = StateManager.getInstance();
+    this.playerManager = PlayerManager.getInstance(this);
     this.snakes = [];
     this.heads = this.add.group();
     this.bodies = this.add.group();
     this.map = new Map(this);
-    this.initPlayers();
+    this.initPlayerEventListeners();
     this.initColliders();
+    this.eventManager.emit('NEW_ROUND');
   }
 
-  initPlayers() {
-    var player1 = new Player(this, 'P1');
-    this.heads.add(player1.snake.head);
-    this.snakes.push(player1.snake);
+  initPlayerEventListeners() {
+    if(this.eventManager.listenerCount('PLAYER_JOIN') === 1) {
+      this.eventManager.on('PLAYER_JOIN', this.playerJoin, this);
+      this.eventManager.on('NEW_BODY', (b: Body) => this.bodies.add(b), this);
+      this.eventManager.on('PLAYER_DEATH', this.checkForRoundOver, this);
+    }
+  }
 
-    var player2 = new Player(this, 'P2');
-    this.heads.add(player2.snake.head);
-    this.snakes.push(player2.snake);
-
-    this.eventManager.on(
-      'NEW_BODY',
-      (body: Body) => this.bodies.add(body),
-      this
-    );
+  playerJoin(p: Player) {
+    this.heads.add(p.snake.head);
+    this.snakes.push(p.snake);
+    const spawn = this.map.playerSpawns.splice(0, 1);
+    if (spawn.length !== 1) {
+      console.error('No spawn location for player: ' + p.id);
+      return;
+    }
+    p.snake.head.x = spawn[0].x;
+    p.snake.head.y = spawn[0].y;
   }
 
   initColliders() {
@@ -66,9 +77,7 @@ export default class GameScene extends Phaser.Scene {
       (head: Head) => head.parent.collide(),
       (head: Head, other: any) => !head.parent.jumping && other.index != -1
     );
-    this.physics.add.collider(this.heads, this.heads, () =>
-      console.log('collide')
-    );
+    this.physics.add.collider(this.heads, this.heads, () => undefined);
     this.physics.add.collider(
       this.heads,
       this.bodies,
@@ -82,8 +91,36 @@ export default class GameScene extends Phaser.Scene {
     );
   }
 
+  checkForRoundOver() {
+    const snakesAlive = this.snakes.filter(s => s.alive);
+    if (snakesAlive.length === 1 && this.snakes.length > 1) {
+      const state = this.stateManager.state;
+      state.playerGainPoint(snakesAlive[0].id);
+      // TODO get max score from settings manager
+      if (state.playerAboveScore(0)) {
+        // Game Over
+        console.log('Game Over');
+      }
+      // Round over
+      console.log('Round over');
+      this.scene.restart();
+    }
+    if (snakesAlive.length === 0) {
+      // Only one player, no points given.
+    }
+  }
+
+  startBattle() {
+    if (this.snakes.length === 0) {
+      return;
+    }
+    for (var s of this.snakes) {
+      s.moving = true;
+    }
+  }
+
   update(time, delta) {
-    // console.log('Frame Rate: ', (1000 / delta).toFixed(2), 'FPS. Bodies: ', this.bodies.children.size);
+    this.playerManager.update();
     for (var snake of this.snakes) {
       snake.update(time, delta);
     }
@@ -95,6 +132,9 @@ export default class GameScene extends Phaser.Scene {
     }
     if (Phaser.Input.Keyboard.JustDown(this.input.keyboard.addKey('R'))) {
       this.scene.restart();
+    }
+    if (Phaser.Input.Keyboard.JustDown(this.input.keyboard.addKey('SPACE'))) {
+      this.startBattle();
     }
   }
 }

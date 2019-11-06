@@ -54,9 +54,6 @@ export default class Map {
 
   spawnCollectable() {
     const i = Phaser.Math.Between(0, this.collectableSpawns.length - 1);
-    console.log(i);
-    var spawn = this.collectableSpawns[i];
-    console.log('i: ', i, ' spawn: ', JSON.stringify(spawn));
     this.collectables.add(
       new Egg({
         scene: this.scene,
