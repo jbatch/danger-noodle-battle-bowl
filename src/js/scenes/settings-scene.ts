@@ -20,7 +20,6 @@ export default class SettingsScene extends Phaser.Scene {
 
   update() {
     if(Phaser.Input.Keyboard.JustDown(this.input.keyboard.addKey('ESC'))) {
-      console.log('Settings');
       this.scene.sendToBack();
       this.scene.resume('GameScene');
       this.scene.pause();

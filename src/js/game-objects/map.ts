@@ -19,7 +19,7 @@ export default class Map {
   }
 
   initMap() {
-    const tilemap = this.scene.make.tilemap({ key: 'mapdata' });
+    const tilemap = this.scene.make.tilemap({ key: 'mapdata-2' });
     const tileset = tilemap.addTilesetImage('map-tilesheet', 'tilemap');
 
     // Create layers

@@ -29,7 +29,8 @@ export default class GameScene extends Phaser.Scene {
   preload() {
     this.load.image('tilemap', './media/map-tilesheet.png');
     this.load.image('egg', './media/egg.png');
-    this.load.tilemapTiledJSON('mapdata', './data/map-1.json');
+    this.load.tilemapTiledJSON('mapdata-1', './data/map-1.json');
+    this.load.tilemapTiledJSON('mapdata-2', './data/map-2.json');
   }
 
   create() {
