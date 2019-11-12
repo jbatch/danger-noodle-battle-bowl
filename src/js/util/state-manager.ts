@@ -66,7 +66,6 @@ export class State {
 
   playerGainPoint(playerId: string): void {
     this.getScoreForPlayer(playerId).score++;
-    console.log(JSON.stringify(this.scores));
   }
 
   getScoreForPlayer(playerId: string): Score {

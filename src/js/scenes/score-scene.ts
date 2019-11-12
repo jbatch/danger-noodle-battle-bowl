@@ -5,15 +5,16 @@ import { StateManager } from '../util/state-manager';
 import EventManager from '../util/event-manager';
 import SceneManager from '../util/scene-manager';
 import SettingsManager from '../util/settings-manager';
+import { runInThisContext } from 'vm';
 
 export default class ScoreScene extends Phaser.Scene {
   stateManager: StateManager;
   eventManager: EventManager;
   sceneManager: SceneManager;
   settingsManager: SettingsManager;
-  playerLabels: Phaser.GameObjects.Text[];
+  scoreSceneItems: ScoreSceneItem[];
+
   pressAnyKeyText: Phaser.GameObjects.Text;
-  crowns: Phaser.GameObjects.Image[];
   playersThatNeedToReadyUp: string[];
   constructor() {
     super({ key: 'Score', active: true });
@@ -33,10 +34,9 @@ export default class ScoreScene extends Phaser.Scene {
     this.sceneManager = SceneManager.getInstance(this.scene);
     this.settingsManager = SettingsManager.getInstance();
     this.cameras.main.setBackgroundColor(0x000000);
-    this.crowns = [];
-    this.playerLabels = [];
     this.playersThatNeedToReadyUp = this.stateManager.state.getPlayersList();
-    const text = this.add
+    this.scoreSceneItems = [];
+    const title = this.add
       .text((this.game.config.width as number) / 2, 50, 'Score', {
         fontSize: '50px'
       })
@@ -53,36 +53,23 @@ export default class ScoreScene extends Phaser.Scene {
       )
       .setAlign('center')
       .setOrigin(0.5);
-
-    this.add.image(250, 250, 'ready');
     this.scene.sendToBack();
     this.scene.pause();
     this.scene.setVisible(false);
   }
 
   handleRoundWin() {
-    // Refresh all crowns
-    for (var c of this.crowns) {
-      c.destroy();
+    for (var item of this.scoreSceneItems) {
+      item.destroy();
     }
-    for (var l of this.playerLabels) {
-      l.destroy();
-    }
+    this.scoreSceneItems = [];
     const scores = this.stateManager.state.getScores();
     scores.sort((a, b) => b.score - a.score);
-    var yOffset = 0;
-    for (var playerScore of scores) {
-      var xOffset = 0;
-      const label = this.add.text(100, 100 + yOffset, playerScore.id, {
-        fontSize: '50px'
-      });
-      this.playerLabels.push(label);
-      for (var i = 0; i < playerScore.score; i++) {
-        const crown = this.add.image(190 + xOffset, 120 + yOffset, 'crown');
-        this.crowns.push(crown);
-        xOffset += 60;
-      }
-      yOffset += 60;
+
+    for (var i = 0; i < scores.length; i++) {
+      const { id, score } = scores[i];
+      const item = new ScoreSceneItem(this, 70, 100 + i * 60, id, score, false);
+      this.scoreSceneItems.push(item);
     }
 
     this.playersThatNeedToReadyUp = this.stateManager.state.getPlayersList();
@@ -90,16 +77,28 @@ export default class ScoreScene extends Phaser.Scene {
   }
 
   initKeyListeners() {
-    for(var player of this.playersThatNeedToReadyUp) {
-      var readyUpButton = this.settingsManager.getSettingsForPlayer(player).keys[1];
-      this.input.keyboard.addKey(readyUpButton).once('down', () => this.handleReadyUp(player), this);
+    for (var player of this.playersThatNeedToReadyUp) {
+      var readyUpButton = this.settingsManager.getSettingsForPlayer(player)
+        .keys[1];
+      this.input.keyboard
+        .addKey(readyUpButton)
+        .once('down', (function(index) {
+          return function() {
+          this.handleReadyUp(index);
+          };
+          })(player), this);
     }
   }
 
   handleReadyUp(id) {
-    this.playersThatNeedToReadyUp.splice(this.playersThatNeedToReadyUp.indexOf(id), 1);
-    if(this.playersThatNeedToReadyUp.length === 0) {
-      this.sceneManager.nextMap();
+    var item = this.scoreSceneItems.find(i => i.playerId === id);
+    item.ready();
+    this.playersThatNeedToReadyUp.splice(
+      this.playersThatNeedToReadyUp.indexOf(id),
+      1
+    );
+    if (this.playersThatNeedToReadyUp.length === 0) {
+      this.time.delayedCall(2000, () => this.sceneManager.nextMap(),undefined, this);
     }
   }
 
@@ -107,5 +106,53 @@ export default class ScoreScene extends Phaser.Scene {
     if (Phaser.Input.Keyboard.JustDown(this.input.keyboard.addKey('C'))) {
       this.sceneManager.nextMap();
     }
+  }
+}
+
+class ScoreSceneItem {
+  x: number;
+  y: number;
+  playerId: string;
+  label: Phaser.GameObjects.Text;
+  crowns: Phaser.GameObjects.Image[];
+  readyUpImage: Phaser.GameObjects.Image;
+
+  constructor(
+    scene: Phaser.Scene,
+    x: number,
+    y: number,
+    playerId: string,
+    crowns: number,
+    ready: boolean
+  ) {
+    this.x = x;
+    this.y = y;
+    this.playerId = playerId;
+    this.readyUpImage = scene.add
+      .image(x, y, 'ready')
+      .setVisible(ready)
+      .setOrigin(0.5);
+    this.label = scene.add
+      .text(this.x + 30, this.y, playerId, { fontSize: '50px' })
+      .setOrigin(0, 0.5);
+    this.crowns = [];
+    for (var i = 0; i < crowns; i++) {
+      const crown = scene.add
+        .image(this.x + 90 + i * 50, this.y - 5, 'crown')
+        .setOrigin(0.0, 0.5);
+      this.crowns.push(crown);
+    }
+  }
+
+  ready() {
+    this.readyUpImage.setVisible(true);
+  }
+
+  destroy() {
+    this.label.destroy();
+    for (var c of this.crowns) {
+      c.destroy();
+    }
+    this.readyUpImage.destroy();
   }
 }

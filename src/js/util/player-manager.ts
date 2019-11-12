@@ -36,13 +36,11 @@ export default class PlayerManager {
     }
     this.players = [];
     for (var id of players) {
-      console.log('')
       this.playerJoin(id);
     }
   }
 
   playerJoin(id) {
-    console.log(`${id} Joined!`);
     const player = new Player(this.scene, id);
     this.players.push(player);
     this.eventManager.emit('PLAYER_JOIN', player);

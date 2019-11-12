@@ -61,8 +61,7 @@ export default class SceneManager {
     this.scenePlugin.pause('Score');
     var currentMap = this.stateManager.state.getCurrentMap();
     var allMaps = this.settingsManager.getEnabledMaps();
-    console.log(allMaps);
-    console.log(allMaps.indexOf(currentMap));
+  
     var nextMap = allMaps[(allMaps.indexOf(currentMap) + 1) % allMaps.length];
     this.stateManager.state.setCurrentMap(nextMap);
     this.scenePlugin.get('GameScene').scene.restart({ map: nextMap });

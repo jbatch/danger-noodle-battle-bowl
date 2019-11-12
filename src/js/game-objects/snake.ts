@@ -189,7 +189,7 @@ export class Snake {
   }
 
   collide() {
-    console.log('collide')
+  
     if (this.invulnerabilityRemaining <= 0 && !this.jumping) {
       this.moving = false;
       this.alive = false;
