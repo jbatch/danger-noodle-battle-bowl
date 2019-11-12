@@ -35,13 +35,18 @@ export class StateManager {
 type Score = { id: string; score: number };
 export class State {
   private scores: Score[];
+  private currentMap: string;
   constructor() {
     this.scores = [];
-    // this.scores = [
-    //   { id: 'P2', score: 1 },
-    //   { id: 'P3', score: 3 },
-    //   { id: 'P1', score: 2 }
-    // ];
+    this.currentMap = 'map1';
+  }
+
+  getCurrentMap() {
+    return this.currentMap;
+  }
+
+  setCurrentMap(map: string) {
+    this.currentMap = map;
   }
 
   addPlayer(p: Player): void {
@@ -76,5 +81,9 @@ export class State {
   getScores(): Score[] {
     // only return a copy of the scores;
     return [...this.scores];
+  }
+
+  getPlayersList(): string[] {
+    return this.scores.map(s => s.id);
   }
 }

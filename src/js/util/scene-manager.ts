@@ -1,6 +1,8 @@
 'use strict';
 
 import 'phaser';
+import { StateManager } from './state-manager';
+import SettingsManager from './settings-manager';
 
 var instance: SceneManager;
 
@@ -8,6 +10,8 @@ export default class SceneManager {
   // gameScene: Phaser.Scene;
   // settingsScene: Phaser.Scene;
   // scoreScene: Phaser.Scene;
+  stateManager: StateManager;
+  settingsManager: SettingsManager;
   scenePlugin: Phaser.Scenes.ScenePlugin;
 
   constructor(scenePlugin: Phaser.Scenes.ScenePlugin) {
@@ -16,6 +20,8 @@ export default class SceneManager {
       'Trying to instantiate non-Singleton SceneManager'
     );
     this.scenePlugin = scenePlugin;
+    this.stateManager = StateManager.getInstance();
+    this.settingsManager = SettingsManager.getInstance();
   }
 
   openSettings() {
@@ -53,7 +59,13 @@ export default class SceneManager {
 
   nextMap() {
     this.scenePlugin.pause('Score');
-    this.scenePlugin.get('GameScene').scene.restart();
+    var currentMap = this.stateManager.state.getCurrentMap();
+    var allMaps = this.settingsManager.getEnabledMaps();
+    console.log(allMaps);
+    console.log(allMaps.indexOf(currentMap));
+    var nextMap = allMaps[(allMaps.indexOf(currentMap) + 1) % allMaps.length];
+    this.stateManager.state.setCurrentMap(nextMap);
+    this.scenePlugin.get('GameScene').scene.restart({ map: nextMap });
     this.scenePlugin.bringToTop('GameScene');
   }
 

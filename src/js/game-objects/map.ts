@@ -1,17 +1,26 @@
 'use strict';
 
-import { Scene } from "phaser";
+import { Scene } from 'phaser';
 
 import Egg from './egg';
+import SettingsManager from '../util/settings-manager';
 
 export default class Map {
+  settingsManager: SettingsManager;
   scene: Scene;
+  dataKey: string;
+  tileMapName: string;
+  tileMapKey: string;
   collectables: Phaser.GameObjects.Group;
   staticLayer: Phaser.Tilemaps.StaticTilemapLayer;
   playerSpawns: { x: number; y: number }[];
   collectableSpawns: { x: number; y: number }[];
-  constructor(scene: Phaser.Scene) {
+  constructor(scene: Phaser.Scene, mapId: string) {
     this.scene = scene;
+    this.settingsManager = SettingsManager.getInstance();
+    this.dataKey = this.settingsManager.getMapConfig(mapId).mapDataKey;
+    this.tileMapName = this.settingsManager.getMapConfig(mapId).tileMapName;
+    this.tileMapKey = this.settingsManager.getMapConfig(mapId).tileMapKey;
     this.collectables = this.scene.add.group();
     this.playerSpawns = [];
     this.collectableSpawns = [];
@@ -19,8 +28,8 @@ export default class Map {
   }
 
   initMap() {
-    const tilemap = this.scene.make.tilemap({ key: 'mapdata-2' });
-    const tileset = tilemap.addTilesetImage('map-tilesheet', 'tilemap');
+    const tilemap = this.scene.make.tilemap({ key: this.dataKey });
+    const tileset = tilemap.addTilesetImage(this.tileMapName, this.tileMapKey);
 
     // Create layers
     this.staticLayer = tilemap.createStaticLayer('static', tileset, 0, 0);

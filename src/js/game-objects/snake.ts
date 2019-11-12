@@ -88,21 +88,6 @@ export class Body extends Phaser.GameObjects.Rectangle {
       if (this.next != undefined) {
         this.next.update();
       }
-      // If previous node has screen wrapped  target its position on the opposite side of the screen
-      // const width = this.scene.game.config.width as number;
-      // const targetX = this.getClosest(
-      //   this.x,
-      //   this.previous.x - width,
-      //   this.previous.x,
-      //   this.previous.x + width
-      // );
-      // const targetY = this.getClosest(
-      //   this.y,
-      //   this.previous.y - width,
-      //   this.previous.y,
-      //   this.previous.y + width
-      // );
-      // this.scene.physics.moveTo(this, targetX, targetY, this.parent.speed);
       this.setPosition(this.previous.x, this.previous.y);
     }
 

@@ -35,7 +35,7 @@ export default class GameScene extends Phaser.Scene {
     this.load.tilemapTiledJSON('mapdata-2', './data/map-2.json');
   }
 
-  create() {
+  create(data) {
     this.cameras.main.setBackgroundColor(0x000000);
     this.eventManager = EventManager.getInstance();
     this.stateManager = StateManager.getInstance();
@@ -45,7 +45,7 @@ export default class GameScene extends Phaser.Scene {
     this.snakes = [];
     this.heads = this.add.group();
     this.bodies = this.add.group();
-    this.map = new Map(this);
+    this.map = new Map(this, data.map ? data.map : 'map1');
     this.initPlayerEventListeners();
     this.initColliders();
     this.eventManager.emit('NEW_ROUND');
@@ -108,7 +108,6 @@ export default class GameScene extends Phaser.Scene {
         console.log('Game Over');
       }
       // Round over
-      console.log('Round over');
       this.eventManager.emit('ROUND_WIN');
       this.sceneManager.showScore();
     }
