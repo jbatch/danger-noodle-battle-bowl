@@ -27,4 +27,8 @@ export default class Player {
     this.keys = PLAYER_CONFIGS[id].keys;
     this.snake = new Snake({ scene, player: this, color: PLAYER_CONFIGS[id].color });
   }
+
+  destroy() {
+    this.snake.destroy();
+  }
 }

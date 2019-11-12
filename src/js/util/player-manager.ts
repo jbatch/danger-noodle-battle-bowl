@@ -31,6 +31,9 @@ export default class PlayerManager {
 
   resetPlayers() {
     const players = this.players.map(p => p.id);
+    for(var player of this.players) {
+      
+    }
     this.players = [];
     for (var id of players) {
       console.log('')

@@ -171,6 +171,10 @@ export class Snake {
     this.scene.add.existing(this.head);
   }
 
+  destroy() {
+
+  }
+
   handleEggCollected(playerId: String) {
     if (playerId === this.id) {
       this.grow();
@@ -200,8 +204,10 @@ export class Snake {
   }
 
   collide() {
+    console.log('collide')
     if (this.invulnerabilityRemaining <= 0 && !this.jumping) {
       this.moving = false;
+      this.alive = false;
       this.head.freeze();
       this.scene.physics.world.disable(this.head);
       this.eventManager.emit('PLAYER_DEATH', this.id);

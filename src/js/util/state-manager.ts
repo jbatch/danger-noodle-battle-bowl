@@ -37,9 +37,14 @@ export class State {
   private scores: Score[];
   constructor() {
     this.scores = [];
+    // this.scores = [
+    //   { id: 'P2', score: 1 },
+    //   { id: 'P3', score: 3 },
+    //   { id: 'P1', score: 2 }
+    // ];
   }
 
-  addPlayer(p: Player) {
+  addPlayer(p: Player): void {
     if (this.getScoreForPlayer(p.id) === undefined) {
       this.scores.push({ id: p.id, score: 0 });
     }
@@ -54,17 +59,22 @@ export class State {
     return undefined;
   }
 
-  playerGainPoint(playerId: string) {
+  playerGainPoint(playerId: string): void {
     this.getScoreForPlayer(playerId).score++;
     console.log(JSON.stringify(this.scores));
   }
 
-  getScoreForPlayer(playerId: string) {
+  getScoreForPlayer(playerId: string): Score {
     for (var s of this.scores) {
       if (s.id === playerId) {
         return s;
       }
     }
     return undefined;
+  }
+
+  getScores(): Score[] {
+    // only return a copy of the scores;
+    return [...this.scores];
   }
 }
