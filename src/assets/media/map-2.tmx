@@ -10,27 +10,51 @@
  </layer>
  <objectgroup id="2" name="object">
   <object id="1" name="player" x="108.192" y="177.743">
+   <properties>
+    <property name="FACING" value="SOUTH"/>
+   </properties>
    <point/>
   </object>
   <object id="2" name="player" x="214.451" y="85.0077">
+   <properties>
+    <property name="FACING" value="EAST"/>
+   </properties>
    <point/>
   </object>
   <object id="3" name="player" x="799.845" y="75.3478">
+   <properties>
+    <property name="FACING" value="WEST"/>
+   </properties>
    <point/>
   </object>
   <object id="4" name="player" x="867.465" y="175.811">
+   <properties>
+    <property name="FACING" value="SOUTH"/>
+   </properties>
    <point/>
   </object>
   <object id="5" name="player" x="850.077" y="475.27">
+   <properties>
+    <property name="FACING" value="NORTH"/>
+   </properties>
    <point/>
   </object>
   <object id="6" name="player" x="743.818" y="552.55">
+   <properties>
+    <property name="FACING" value="WEST"/>
+   </properties>
    <point/>
   </object>
   <object id="7" name="player" x="171.947" y="558.346">
+   <properties>
+    <property name="FACING" value="EAST"/>
+   </properties>
    <point/>
   </object>
   <object id="8" name="player" x="98.5317" y="455.951">
+   <properties>
+    <property name="FACING" value="NORTH"/>
+   </properties>
    <point/>
   </object>
   <object id="9" name="collectable" x="479.134" y="137.172">

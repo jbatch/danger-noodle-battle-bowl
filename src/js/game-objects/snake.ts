@@ -3,6 +3,8 @@
 import 'phaser';
 import Player from './player';
 import EventManager from '../util/event-manager';
+import { Collectable } from './collectable';
+import { Laser, LaserBeam } from './laser';
 
 var FOLLOW_DISTANCE = 10;
 
@@ -128,11 +130,13 @@ export class Snake {
   angle: number;
   speed: number;
   turnSpeed: number;
+  heldItem: Phaser.GameObjects.Image;
   constructor({ scene, player, color }: SnakeProps) {
     this.scene = scene;
     this.id = player.id;
     this.eventManager = EventManager.getInstance();
     this.eventManager.on('EGG_COLLECTED', this.handleEggCollected, this);
+    this.eventManager.on('LASER_COLLECTED', this.handleLaserCollected, this);
     this.moving = false;
     this.jumping = false;
     this.alive = true;
@@ -156,18 +160,49 @@ export class Snake {
     this.scene.add.existing(this.head);
   }
 
-  destroy() {
+  destroy() {}
 
+  setDirection(dir: string) {
+    switch (dir) {
+      case 'NORTH':
+        this.angle = -90;
+        break;
+      case 'SOUTH':
+        this.angle = 90;
+        break;
+      case 'EAST':
+        this.angle = 0;
+        break;
+      case 'WEST':
+        this.angle = 180;
+        break;
+    }
   }
 
-  handleEggCollected(playerId: String) {
+  handleEggCollected(playerId: string) {
     if (playerId === this.id) {
-      this.grow();
-      this.grow();
-      this.grow();
-      this.grow();
-      this.grow();
+      this.grow5();
     }
+  }
+
+  handleLaserCollected(playerId: string) {
+    if (this.heldItem != undefined) {
+      this.heldItem.destroy();
+    }
+    if (playerId === this.id) {
+      this.heldItem = this.scene.add
+        .image(this.head.x, this.head.y, 'laser')
+        .setScale(0.5)
+        .setOrigin(1, 1);
+    }
+  }
+
+  grow5() {
+    this.grow();
+    this.grow();
+    this.grow();
+    this.grow();
+    this.grow();
   }
 
   grow() {
@@ -188,8 +223,23 @@ export class Snake {
     this.speed += 2;
   }
 
+  useItem() {
+    console.log(this.heldItem);
+    switch (this.heldItem.texture.key) {
+      case 'laser':
+        new LaserBeam({
+          scene: this.scene,
+          x: this.head.x,
+          y: this.head.y,
+          angle: this.angle
+        });
+        break;
+    }
+    this.heldItem.destroy();
+    this.heldItem = undefined;
+  }
+
   collide() {
-  
     if (this.invulnerabilityRemaining <= 0 && !this.jumping) {
       this.moving = false;
       this.alive = false;
@@ -223,6 +273,9 @@ export class Snake {
     if (Phaser.Input.Keyboard.JustDown(this.up)) {
       if (!this.moving) {
         this.moving = true;
+        this.grow5();
+      } else if (this.heldItem) {
+        this.useItem();
       } else {
         this.jumping = true;
         var timer = this.scene.time.delayedCall(
@@ -238,6 +291,9 @@ export class Snake {
     }
     if (this.right.isDown) {
       this.angle += this.turnSpeed;
+    }
+    if (this.heldItem) {
+      this.heldItem.setPosition(this.head.body.x, this.head.body.y);
     }
     if (this.moving) {
       this.scene.physics.velocityFromAngle(

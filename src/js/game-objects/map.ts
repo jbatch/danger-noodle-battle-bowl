@@ -5,6 +5,8 @@ import { Scene } from 'phaser';
 import Egg from './egg';
 import SettingsManager from '../util/settings-manager';
 
+type ObjectData = { [key: string]: any };
+
 export default class Map {
   settingsManager: SettingsManager;
   scene: Scene;
@@ -13,7 +15,7 @@ export default class Map {
   tileMapKey: string;
   collectables: Phaser.GameObjects.Group;
   staticLayer: Phaser.Tilemaps.StaticTilemapLayer;
-  playerSpawns: { x: number; y: number }[];
+  playerSpawns: { x: number; y: number; dir: string }[];
   collectableSpawns: { x: number; y: number }[];
   constructor(scene: Phaser.Scene, mapId: string) {
     this.scene = scene;
@@ -44,7 +46,11 @@ export default class Map {
     );
 
     for (var o of playerObjects) {
-      this.playerSpawns.push({ x: o.x, y: o.y });
+      this.playerSpawns.push({
+        x: o.x,
+        y: o.y,
+        dir: this.getPropertyByName(o.data.getAll(), 'FACING').value
+      });
       o.destroy();
     }
 
@@ -63,13 +69,31 @@ export default class Map {
 
   spawnCollectable() {
     const i = Phaser.Math.Between(0, this.collectableSpawns.length - 1);
+    const cIndex = Phaser.Math.Between(
+      0,
+      this.settingsManager.getEnabledItems().length - 1
+    );
+    const collectTypeClass = this.settingsManager.getEnabledItems()[cIndex];
+    
+    console.log(this.settingsManager.getEnabledItems);
+    // console.log(new collectTypeClass());
     this.collectables.add(
-      new Egg({
+      new collectTypeClass({
         scene: this.scene,
         x: this.collectableSpawns[i].x,
-        y: this.collectableSpawns[i].y,
-        texture: 'egg'
+        y: this.collectableSpawns[i].y
       })
     );
+  }
+
+  getPropertyByName(dataMap: ObjectData, name: string): any {
+    var value = undefined;
+    Object.keys(dataMap).forEach(key => {
+      if (dataMap[key].name === name) {
+        value = dataMap[key];
+        return;
+      }
+    });
+    return value;
   }
 }

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.2" tiledversion="1.2.5" orientation="orthogonal" renderorder="right-down" width="30" height="20" tilewidth="32" tileheight="32" infinite="0" nextlayerid="4" nextobjectid="13">
+<map version="1.2" tiledversion="1.2.5" orientation="orthogonal" renderorder="right-down" width="30" height="20" tilewidth="32" tileheight="32" infinite="0" nextlayerid="4" nextobjectid="17">
  <tileset firstgid="1" name="map-tilesheet" tilewidth="32" tileheight="32" tilecount="100" columns="10">
   <image source="map-tilesheet.png" width="320" height="320"/>
   <tile id="0">
@@ -74,9 +74,33 @@
    </properties>
    <point/>
   </object>
-  <object id="12" name="player" x="828.571" y="573.214">
+  <object id="12" name="player" x="235.714" y="576.785">
+   <properties>
+    <property name="FACING" value="EAST"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="13" name="player" x="830.357" y="558.929">
    <properties>
     <property name="FACING" value="NORTH"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="14" name="player" x="700" y="573.214">
+   <properties>
+    <property name="FACING" value="WEST"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="15" name="player" x="241.071" y="60.7134">
+   <properties>
+    <property name="FACING" value="EAST"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="16" name="player" x="707.143" y="62.5">
+   <properties>
+    <property name="FACING" value="WEST"/>
    </properties>
    <point/>
   </object>

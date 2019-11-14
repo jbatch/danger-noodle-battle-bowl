@@ -2,6 +2,9 @@
 
 import 'phaser';
 import Map from '../game-objects/map';
+import Egg from '../game-objects/egg';
+import {Laser} from '../game-objects/laser';
+import { Constructor, Collectable } from '../game-objects/collectable';
 
 var instance: SettingsManager;
 
@@ -34,6 +37,11 @@ const DEFAULT_MAP_SETTINGS = [
   }
 ];
 
+const DEFAULT_ITEM_SETTINGS = [
+  { id: 'egg', enabled: true, constructor: Egg },
+  { id: 'laser', enabled: true, constructor: Laser }
+];
+
 const DEFAULT_SCORE_LIMIT = 3;
 
 type PlayerConfig = {
@@ -50,9 +58,16 @@ type MapConfig = {
   enabled: boolean;
 };
 
+type ItemConfig = {
+  id: string;
+  enabled: boolean;
+  constructor: Constructor<Collectable>;
+};
+
 export default class SettingsManager {
   playerSettings: PlayerConfig[];
   maps: MapConfig[];
+  items: ItemConfig[];
   scoreLimit: number;
 
   constructor() {
@@ -62,6 +77,7 @@ export default class SettingsManager {
     );
     this.playerSettings = DEFAULT_PLAYER_CONFIGS;
     this.maps = DEFAULT_MAP_SETTINGS;
+    this.items = DEFAULT_ITEM_SETTINGS;
     this.scoreLimit = DEFAULT_SCORE_LIMIT;
   }
 
@@ -75,6 +91,10 @@ export default class SettingsManager {
 
   getEnabledMaps(): string[] {
     return this.maps.filter(m => m.enabled).map(m => m.id);
+  }
+
+  getEnabledItems(): Constructor<Collectable>[] {
+    return this.items.filter(i => i.enabled).map(i => i.constructor);
   }
 
   static getInstance() {
