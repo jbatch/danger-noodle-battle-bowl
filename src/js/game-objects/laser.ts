@@ -41,16 +41,19 @@ type BeamProps = {
   angle: number;
 };
 export class LaserBeam extends Phaser.GameObjects.Image {
+  public body!: Phaser.Physics.Arcade.Body;
   eventManager: EventManager;
   x: number;
   y: number;
   angle: number;
+  bounces: number
   constructor({ scene, x, y, angle }: BeamProps) {
     super(scene, x, y, 'laserbeam');
     this.setAlpha(0);
     this.x = x;
     this.y = y;
     this.angle = angle;
+    this.bounces = 1;
     this.eventManager = EventManager.getInstance();
     this.scene.physics.world.enable(this);
     
@@ -63,10 +66,21 @@ export class LaserBeam extends Phaser.GameObjects.Image {
     this.scene.add.existing(this);
     this.scene.physics.velocityFromAngle(
       this.angle,
-      1000,
+      300,
       body.velocity
     );
+    if(this.bounces > 0) {
+      this.body.setBounce(1,1);
+    }
     this.eventManager.emit('NEW_COLLIDER', this);
+  }
+
+  collideWall() {
+    console.log('bounce')
+    if(this.bounces <= 0) {
+      this.destroy();
+    }
+    this.bounces--;
   }
 
   blah() {

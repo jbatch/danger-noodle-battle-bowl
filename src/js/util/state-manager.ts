@@ -37,8 +37,8 @@ export class State {
   private scores: Score[];
   private currentMap: string;
   constructor() {
-    // this.scores = [];
-    this.scores = [{ id: 'P1', score: 2 }, { id: 'P2', score: 2 }];
+    this.scores = [];
+    // this.scores = [{ id: 'P1', score: 2 }, { id: 'P2', score: 2 }];
     this.currentMap = 'map1';
   }
 

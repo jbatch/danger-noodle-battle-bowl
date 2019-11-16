@@ -119,9 +119,8 @@ export default class GameScene extends Phaser.Scene {
     this.physics.add.collider(
       this.map.staticLayer,
       this.colliders,
-      (wall: any, collider: any) => {
-        console.log('COLLIDE', wall);
-        collider.destroy();
+      (collider: any, wall: any) => {
+        collider.collideWall();
       },
       () => true,
       this
@@ -157,7 +156,6 @@ export default class GameScene extends Phaser.Scene {
   }
 
   update(time, delta) {
-    console.log('colliders: ', this.colliders.getLength());
     this.playerManager.update();
     for (var snake of this.snakes) {
       snake.update(time, delta);
