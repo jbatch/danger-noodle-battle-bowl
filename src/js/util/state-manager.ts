@@ -37,7 +37,8 @@ export class State {
   private scores: Score[];
   private currentMap: string;
   constructor() {
-    this.scores = [];
+    // this.scores = [];
+    this.scores = [{ id: 'P1', score: 2 }, { id: 'P2', score: 2 }];
     this.currentMap = 'map1';
   }
 
@@ -80,6 +81,10 @@ export class State {
   getScores(): Score[] {
     // only return a copy of the scores;
     return [...this.scores];
+  }
+
+  resetScores() {
+    this.scores = this.scores.map(({ id }: Score) => ({ id, score: 0 }));
   }
 
   getPlayersList(): string[] {

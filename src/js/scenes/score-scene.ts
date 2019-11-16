@@ -31,7 +31,8 @@ export default class ScoreScene extends Phaser.Scene {
     this.stateManager = StateManager.getInstance();
     this.eventManager = EventManager.getInstance();
     this.eventManager.on('ROUND_WIN', this.handleRoundWin, this);
-    this.sceneManager = SceneManager.getInstance(this.scene);
+    this.events.on('wake', this.handleRoundWin, this);
+    this.sceneManager = SceneManager.getInstance();
     this.settingsManager = SettingsManager.getInstance();
     this.cameras.main.setBackgroundColor(0x000000);
     this.playersThatNeedToReadyUp = this.stateManager.state.getPlayersList();
@@ -54,8 +55,7 @@ export default class ScoreScene extends Phaser.Scene {
       .setAlign('center')
       .setOrigin(0.5);
     this.scene.sendToBack();
-    this.scene.pause();
-    this.scene.setVisible(false);
+    this.scene.sleep();
   }
 
   handleRoundWin() {
@@ -80,13 +80,15 @@ export default class ScoreScene extends Phaser.Scene {
     for (var player of this.playersThatNeedToReadyUp) {
       var readyUpButton = this.settingsManager.getSettingsForPlayer(player)
         .keys[1];
-      this.input.keyboard
-        .addKey(readyUpButton)
-        .once('down', (function(index) {
+      this.input.keyboard.addKey(readyUpButton).once(
+        'down',
+        (function(index) {
           return function() {
-          this.handleReadyUp(index);
+            this.handleReadyUp(index);
           };
-          })(player), this);
+        })(player),
+        this
+      );
     }
   }
 
@@ -98,18 +100,21 @@ export default class ScoreScene extends Phaser.Scene {
       1
     );
     if (this.playersThatNeedToReadyUp.length === 0) {
-      this.time.delayedCall(2000, () => this.sceneManager.nextMap(),undefined, this);
+      this.time.delayedCall(
+        2000,
+        () => this.sceneManager.nextMap(this.scene),
+        undefined,
+        this
+      );
     }
   }
 
   update() {
-    if (Phaser.Input.Keyboard.JustDown(this.input.keyboard.addKey('C'))) {
-      this.sceneManager.nextMap();
-    }
+  
   }
 }
 
-class ScoreSceneItem {
+export class ScoreSceneItem {
   x: number;
   y: number;
   playerId: string;

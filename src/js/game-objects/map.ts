@@ -75,8 +75,6 @@ export default class Map {
     );
     const collectTypeClass = this.settingsManager.getEnabledItems()[cIndex];
     
-    console.log(this.settingsManager.getEnabledItems);
-    // console.log(new collectTypeClass());
     this.collectables.add(
       new collectTypeClass({
         scene: this.scene,

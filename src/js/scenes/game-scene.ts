@@ -44,7 +44,7 @@ export default class GameScene extends Phaser.Scene {
     this.stateManager = StateManager.getInstance();
     this.playerManager = PlayerManager.getInstance(this);
     this.settingsManager = SettingsManager.getInstance();
-    this.sceneManager = SceneManager.getInstance(this.scene);
+    this.sceneManager = SceneManager.getInstance();
     this.snakes = [];
     this.heads = this.add.group();
     this.bodies = this.add.group();
@@ -131,15 +131,16 @@ export default class GameScene extends Phaser.Scene {
   checkForRoundOver() {
     const snakesAlive = this.snakes.filter(s => s.alive);
     if (snakesAlive.length === 1 && this.snakes.length > 1) {
+      snakesAlive[0].freeze();
       const state = this.stateManager.state;
       state.playerGainPoint(snakesAlive[0].id);
       if (state.playerAboveScore(this.settingsManager.scoreLimit)) {
         // Game Over
-        console.log('Game Over');
+        this.time.delayedCall(1000, () => this.sceneManager.showGameOver(this.scene),undefined, this);
+        return;
       }
       // Round over
-      this.eventManager.emit('ROUND_WIN');
-      this.sceneManager.showScore();
+      this.time.delayedCall(1000, () => this.sceneManager.showScore(this.scene),undefined, this);
     }
     if (snakesAlive.length === 0) {
       // Only one player, no points given.
@@ -174,12 +175,8 @@ export default class GameScene extends Phaser.Scene {
       this.startBattle();
     }
     if (Phaser.Input.Keyboard.JustDown(this.input.keyboard.addKey('ESC'))) {
-      this.sceneManager.openSettings();
+      this.sceneManager.openSettings(this.scene);
       this.input.keyboard.addKey('ESC').reset();
-    }
-    if (Phaser.Input.Keyboard.JustDown(this.input.keyboard.addKey('C'))) {
-      this.sceneManager.peekScore();
-      this.input.keyboard.addKey('C').reset();
     }
   }
 }

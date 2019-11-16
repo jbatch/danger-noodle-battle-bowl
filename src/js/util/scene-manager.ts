@@ -7,70 +7,62 @@ import SettingsManager from './settings-manager';
 var instance: SceneManager;
 
 export default class SceneManager {
-  // gameScene: Phaser.Scene;
-  // settingsScene: Phaser.Scene;
-  // scoreScene: Phaser.Scene;
   stateManager: StateManager;
   settingsManager: SettingsManager;
-  scenePlugin: Phaser.Scenes.ScenePlugin;
 
-  constructor(scenePlugin: Phaser.Scenes.ScenePlugin) {
+  constructor() {
     console.assert(
       instance === undefined,
       'Trying to instantiate non-Singleton SceneManager'
     );
-    this.scenePlugin = scenePlugin;
     this.stateManager = StateManager.getInstance();
     this.settingsManager = SettingsManager.getInstance();
   }
 
-  openSettings() {
-    this.scenePlugin.pause('GameScene');
-    this.scenePlugin.bringToTop('Settings');
-    this.scenePlugin.resume('Settings');
-    this.scenePlugin.setVisible(true, 'Settings');
+  openSettings(scenePlugin: Phaser.Scenes.ScenePlugin) {
+    scenePlugin.pause('GameScene');
+    scenePlugin.bringToTop('Settings');
+    scenePlugin.resume('Settings');
+    scenePlugin.setVisible(true, 'Settings');
   }
 
-  closeSettings() {
-    this.scenePlugin.sendToBack('Settings');
-    this.scenePlugin.resume('GameScene');
-    this.scenePlugin.pause('Settings');
+  closeSettings(scenePlugin: Phaser.Scenes.ScenePlugin) {
+    scenePlugin.resume('GameScene');
+    scenePlugin.pause('Settings');
+    scenePlugin.setVisible(false, 'Settings');
   }
 
-  showScore() {
-    this.scenePlugin.bringToTop('Score');
-    this.scenePlugin.pause('GameScene');
-    this.scenePlugin.resume('Score');
-    this.scenePlugin.setVisible(true, 'Score');
+  showScore(scenePlugin: Phaser.Scenes.ScenePlugin) {
+    console.log('Show Score')
+    scenePlugin.switch('Score');
   }
 
-  peekScore() {
-    this.scenePlugin.bringToTop('Score');
-    this.scenePlugin.pause('GameScene');
-    this.scenePlugin.resume('Score');
-    this.scenePlugin.setVisible(true, 'Score');
+  showGameOver(scenePlugin: Phaser.Scenes.ScenePlugin) {
+    scenePlugin.switch('GameOver');
   }
 
-  hideScore() {
-    this.scenePlugin.pause('Score');
-    this.scenePlugin.resume('GameScene');
-    this.scenePlugin.bringToTop('GameScene');
-  }
-
-  nextMap() {
-    this.scenePlugin.pause('Score');
-    var currentMap = this.stateManager.state.getCurrentMap();
-    var allMaps = this.settingsManager.getEnabledMaps();
+  nextMap(scenePlugin: Phaser.Scenes.ScenePlugin) {
+    
+    const currentMap = this.stateManager.state.getCurrentMap();
+    const allMaps = this.settingsManager.getEnabledMaps();
   
-    var nextMap = allMaps[(allMaps.indexOf(currentMap) + 1) % allMaps.length];
+    const nextMap = allMaps[(allMaps.indexOf(currentMap) + 1) % allMaps.length];
     this.stateManager.state.setCurrentMap(nextMap);
-    this.scenePlugin.get('GameScene').scene.restart({ map: nextMap });
-    this.scenePlugin.bringToTop('GameScene');
+    scenePlugin.get('GameScene').scene.restart({ map: nextMap });
+    scenePlugin.switch('GameScene');
   }
 
-  static getInstance(scenePlugin: Phaser.Scenes.ScenePlugin) {
+  reset(scenePlugin: Phaser.Scenes.ScenePlugin) {
+    const allMaps = this.settingsManager.getEnabledMaps();
+    const nextMap = allMaps[0];
+    this.stateManager.state.setCurrentMap(nextMap);
+    scenePlugin.get('GameScene').scene.restart({ map: nextMap });
+    scenePlugin.switch('GameScene');
+  }
+
+  static getInstance() {
     if (instance === undefined) {
-      instance = new SceneManager(scenePlugin);
+      instance = new SceneManager();
     }
     return instance;
   }

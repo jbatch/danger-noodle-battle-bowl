@@ -31,6 +31,8 @@ export default class PlayerManager {
 
   resetPlayers() {
     const players = this.players.map(p => p.id);
+    this.eventManager.removeAllListeners('EGG_COLLECTED');
+    this.eventManager.removeAllListeners('LASER_COLLECTED');
     for(var player of this.players) {
       
     }

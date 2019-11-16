@@ -6,7 +6,7 @@ import SceneManager from '../util/scene-manager';
 export default class SettingsScene extends Phaser.Scene {
   sceneManager: SceneManager;
   constructor() {
-    super({key: 'Settings', active: true});
+    super({key: 'Settings', active: true, visible: true});
     
   }
 
@@ -15,17 +15,15 @@ export default class SettingsScene extends Phaser.Scene {
   preload() {}
 
   create() {
-    this.sceneManager = SceneManager.getInstance(this.scene);
+    this.sceneManager = SceneManager.getInstance();
     this.cameras.main.setBackgroundColor({ r: 0, g: 0, b: 0, a: 150 });
     this.add.text(100, 100, 'SETTINGS');
-    this.scene.sendToBack();
-    this.scene.pause();
-    this.scene.setVisible(false);
+    this.scene.sleep();
   }
 
   update() {
     if(Phaser.Input.Keyboard.JustDown(this.input.keyboard.addKey('ESC'))) {
-      this.sceneManager.closeSettings();
+      this.sceneManager.closeSettings(this.scene);
     }
   }
 }

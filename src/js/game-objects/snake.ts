@@ -241,9 +241,8 @@ export class Snake {
 
   collide() {
     if (this.invulnerabilityRemaining <= 0 && !this.jumping) {
-      this.moving = false;
+      this.freeze();
       this.alive = false;
-      this.head.freeze();
       this.scene.physics.world.disable(this.head);
       this.eventManager.emit('PLAYER_DEATH', this.id);
     }
@@ -255,12 +254,16 @@ export class Snake {
       return;
     }
     if (this.invulnerabilityRemaining <= 0 && !this.jumping) {
-      this.moving = false;
+      this.freeze();
       this.alive = false;
-      this.head.freeze();
       this.scene.physics.world.disable(this.head);
       this.eventManager.emit('PLAYER_DEATH', this.id);
     }
+  }
+
+  freeze() {
+    this.moving = false;
+    this.head.freeze();
   }
 
   update(time, delta) {

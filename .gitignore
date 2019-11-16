@@ -10,3 +10,7 @@ node_modules
 *.tsx
 yarn.lock
 package-lock.json
+
+
+# Krita
+*.kra-autosave.kra
