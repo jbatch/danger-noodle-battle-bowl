@@ -42,7 +42,7 @@ const DEFAULT_ITEM_SETTINGS = [
   { id: 'egg', enabled: false, constructor: Egg },
   { id: 'laser', enabled: false, constructor: Laser },
   { id: 'grenade', enabled: false, constructor: Grenade },
-  { id: 'c4', enabled: false, constructor: C4 }
+  { id: 'c4', enabled: true, constructor: C4 }
 ];
 
 const DEFAULT_SCORE_LIMIT = 3;
@@ -82,6 +82,18 @@ export class SettingsManager {
     this.maps = DEFAULT_MAP_SETTINGS;
     this.items = DEFAULT_ITEM_SETTINGS;
     this.scoreLimit = DEFAULT_SCORE_LIMIT;
+  }
+
+  toggleItem(itemId: string) {
+    const item = this.items.find(i => i.id === itemId);
+    item.enabled = !item.enabled;
+    return item.enabled;
+  }
+
+  toggleMap(mapId: string) {
+    const map = this.maps.find(i => i.id === mapId);
+    map.enabled = !map.enabled;
+    return map.enabled;
   }
 
   getSettingsForPlayer(playerId: string): PlayerConfig {

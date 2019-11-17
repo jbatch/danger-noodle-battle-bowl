@@ -63,6 +63,10 @@ export default class SettingsScene extends Phaser.Scene {
   }
 }
 
+const HIGHLIGHT = 0x08e77b;
+const ENABLED = 0x0e9e5e;
+const DISABLED = 0xffffff;
+
 type MapItemProps = {
   scene: Phaser.Scene;
   x: number;
@@ -76,13 +80,29 @@ class MapItem extends Phaser.GameObjects.Image {
     super(scene, x, y, mapConfig.id);
     this.setOrigin(0.5, 0.5);
     this.setScale(0.1);
+
+    this.setInteractive();
+    this.on('pointerover', () => this.background.setFillStyle(HIGHLIGHT, 0.7));
+    this.on('pointerout', () =>
+      this.background.setFillStyle(mapConfig.enabled ? ENABLED : DISABLED, 0.7)
+    );
+    this.on('pointerdown', () => {
+      mapConfig.enabled = SettingsManager.getInstance().toggleMap(
+        mapConfig.id
+      );
+      this.background.setFillStyle(
+        mapConfig.enabled ? ENABLED : DISABLED,
+        0.7
+      );
+    });
+
     this.background = this.scene.add
       .rectangle(
         x,
         y,
         this.displayWidth + 20,
         this.displayHeight + 20,
-        0xffffff,
+        mapConfig.enabled ? ENABLED : DISABLED,
         0.7
       )
       .setOrigin(0.5, 0.5);
@@ -103,14 +123,27 @@ class ItemItem extends Phaser.GameObjects.Image {
     super(scene, x, y, itemConfig.id);
     this.setOrigin(0.5, 0.5);
     this.setInteractive();
-    // this.setScale(0.1);
+    this.on('pointerover', () => this.background.setFillStyle(HIGHLIGHT, 0.7));
+    this.on('pointerout', () =>
+      this.background.setFillStyle(itemConfig.enabled ? ENABLED : DISABLED, 0.7)
+    );
+    this.on('pointerdown', () => {
+      itemConfig.enabled = SettingsManager.getInstance().toggleItem(
+        itemConfig.id
+      );
+      this.background.setFillStyle(
+        itemConfig.enabled ? ENABLED : DISABLED,
+        0.7
+      );
+    });
+
     this.background = this.scene.add
       .rectangle(
         x,
         y,
         this.displayWidth + 0,
         this.displayHeight + 0,
-        0xffffff,
+        itemConfig.enabled ? ENABLED : DISABLED,
         0.7
       )
       .setOrigin(0.5, 0.5);

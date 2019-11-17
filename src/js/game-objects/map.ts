@@ -2,7 +2,7 @@
 
 import { Scene } from 'phaser';
 
-import {SettingsManager} from '../util/settings-manager';
+import { SettingsManager } from '../util/settings-manager';
 import EventManager from '../util/event-manager';
 
 type ObjectData = { [key: string]: any };
@@ -17,7 +17,7 @@ export default class Map {
   collectables: Phaser.GameObjects.Group;
   staticLayer: Phaser.Tilemaps.StaticTilemapLayer;
   playerSpawns: { x: number; y: number; dir: string }[];
-  collectableSpawns: { x: number; y: number, full: boolean, id: number }[];
+  collectableSpawns: { x: number; y: number; full: boolean; id: number }[];
   constructor(scene: Phaser.Scene, mapId: string) {
     this.scene = scene;
     this.settingsManager = SettingsManager.getInstance();
@@ -33,9 +33,13 @@ export default class Map {
     this.eventManager.on('ITEM_COLLECTED', this.resetSpawn, this);
   }
 
-  resetSpawn({spawnId}) {
-    console.log('reset Spwan', {spawnId, spawns: this.collectableSpawns});
-    this.collectableSpawns.find(s => s.id === spawnId).full = false;
+  resetSpawn({ spawnId }) {
+    console.log('reset Spwan', { spawnId, spawns: this.collectableSpawns });
+    const spawn = this.collectableSpawns.find(s => s.id === spawnId);
+    if (!spawn) {
+      return;
+    }
+    spawn.full = false;
   }
 
   initMap() {
@@ -72,7 +76,7 @@ export default class Map {
     );
     var i = 0;
     for (var o of collectableObjects) {
-      this.collectableSpawns.push({ x: o.x, y: o.y, full: false, id:  i});
+      this.collectableSpawns.push({ x: o.x, y: o.y, full: false, id: i });
       i++;
       o.destroy();
     }
@@ -80,21 +84,18 @@ export default class Map {
 
   spawnCollectable() {
     const enabledItems = this.settingsManager.getEnabledItems();
-    if(enabledItems.length === 0) {
+    if (enabledItems.length === 0) {
       return;
     }
     const emptySpawns = this.collectableSpawns.filter(s => !s.full);
-    if(emptySpawns.length === 0 ) {
+    if (emptySpawns.length === 0) {
       return;
     }
     const i = Phaser.Math.Between(0, emptySpawns.length - 1);
-    const cIndex = Phaser.Math.Between(
-      0,
-      enabledItems.length - 1
-    );
+    const cIndex = Phaser.Math.Between(0, enabledItems.length - 1);
     const collectTypeClass = enabledItems[cIndex];
     emptySpawns[i].full = true;
-    
+
     this.collectables.add(
       new collectTypeClass({
         scene: this.scene,
