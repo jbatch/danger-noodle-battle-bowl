@@ -3,8 +3,8 @@
 import 'phaser';
 import Player from './player';
 import EventManager from '../util/event-manager';
-import { Collectable, Activateable } from './interfaces';
-import { Laser, LaserBeam } from './laser';
+import { Activateable } from './interfaces';
+import { LaserBeam } from './laser';
 import { ThrownGrenade } from './grenade';
 import { PlacedC4 } from './c4';
 

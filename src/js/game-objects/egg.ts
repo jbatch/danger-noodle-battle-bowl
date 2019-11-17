@@ -1,7 +1,7 @@
 'use strict'
 
 import 'phaser';
-import {Collectable} from './collectable';
+import {Collectable} from './interfaces';
 import EventManager from '../util/event-manager';
 import {Snake} from './snake';
 

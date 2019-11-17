@@ -2,9 +2,7 @@
 
 import 'phaser';
 import { Snake } from './snake';
-import SettingsManager from '../util/settings-manager';
-
-
+import { SettingsManager } from '../util/settings-manager';
 
 export default class Player {
   settingsManager: SettingsManager;
@@ -12,10 +10,7 @@ export default class Player {
   keys: number[];
   snake: Snake;
 
-  constructor(
-    scene: Phaser.Scene,
-    id: string
-  ) {
+  constructor(scene: Phaser.Scene, id: string) {
     this.settingsManager = SettingsManager.getInstance();
     var config = this.settingsManager.getSettingsForPlayer(id);
     console.assert(config !== undefined, 'No config for player: ' + id);

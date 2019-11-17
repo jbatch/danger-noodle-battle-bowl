@@ -4,7 +4,7 @@ import 'phaser';
 import { StateManager } from '../util/state-manager';
 import EventManager from '../util/event-manager';
 import SceneManager from '../util/scene-manager';
-import SettingsManager from '../util/settings-manager';
+import { SettingsManager } from '../util/settings-manager';
 import { ScoreSceneItem } from './score-scene';
 
 export default class GameOverScene extends Phaser.Scene {

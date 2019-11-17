@@ -4,14 +4,12 @@ import 'phaser';
 import EventManager from '../util/event-manager';
 import PlayerManager from '../util/player-manager';
 import { StateManager } from '../util/state-manager';
-import SettingsManager from '../util/settings-manager';
+import { SettingsManager } from '../util/settings-manager';
 import SceneManager from '../util/scene-manager';
 import Map from '../game-objects/map';
 import Player from '../game-objects/player';
 import { Snake, Head, Body } from '../game-objects/snake';
-import { Collectable } from '../game-objects/collectable';
-import { LaserBeam } from '../game-objects/laser';
-import Collider from '../game-objects/collider';
+import { Collectable, Collider } from '../game-objects/interfaces';
 
 export default class GameScene extends Phaser.Scene {
   eventManager: EventManager;

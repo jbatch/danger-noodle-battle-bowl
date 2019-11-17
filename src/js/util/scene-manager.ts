@@ -2,7 +2,7 @@
 
 import 'phaser';
 import { StateManager } from './state-manager';
-import SettingsManager from './settings-manager';
+import { SettingsManager } from './settings-manager';
 
 var instance: SceneManager;
 
@@ -43,7 +43,7 @@ export default class SceneManager {
   nextMap(scenePlugin: Phaser.Scenes.ScenePlugin) {
     const currentMap = this.stateManager.state.getCurrentMap();
     const allMaps = this.settingsManager.getEnabledMaps();
-  
+
     const nextMap = allMaps[(allMaps.indexOf(currentMap) + 1) % allMaps.length];
     this.stateManager.state.setCurrentMap(nextMap);
     scenePlugin.get('GameScene').scene.restart({ map: nextMap });

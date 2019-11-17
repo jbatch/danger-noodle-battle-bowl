@@ -2,8 +2,7 @@
 
 import { Scene } from 'phaser';
 
-import Egg from './egg';
-import SettingsManager from '../util/settings-manager';
+import {SettingsManager} from '../util/settings-manager';
 import EventManager from '../util/event-manager';
 
 type ObjectData = { [key: string]: any };
@@ -80,6 +79,10 @@ export default class Map {
   }
 
   spawnCollectable() {
+    const enabledItems = this.settingsManager.getEnabledItems();
+    if(enabledItems.length === 0) {
+      return;
+    }
     const emptySpawns = this.collectableSpawns.filter(s => !s.full);
     if(emptySpawns.length === 0 ) {
       return;
@@ -87,9 +90,9 @@ export default class Map {
     const i = Phaser.Math.Between(0, emptySpawns.length - 1);
     const cIndex = Phaser.Math.Between(
       0,
-      this.settingsManager.getEnabledItems().length - 1
+      enabledItems.length - 1
     );
-    const collectTypeClass = this.settingsManager.getEnabledItems()[cIndex];
+    const collectTypeClass = enabledItems[cIndex];
     emptySpawns[i].full = true;
     
     this.collectables.add(

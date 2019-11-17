@@ -1,11 +1,10 @@
 'use strict';
 
 import 'phaser';
-import Map from '../game-objects/map';
 import Egg from '../game-objects/egg';
 import { Grenade } from '../game-objects/grenade';
 import { Laser } from '../game-objects/laser';
-import { Constructor, Collectable } from '../game-objects/collectable';
+import { Constructor, Collectable } from '../game-objects/interfaces';
 import { C4 } from '../game-objects/c4';
 
 var instance: SettingsManager;
@@ -43,7 +42,7 @@ const DEFAULT_ITEM_SETTINGS = [
   { id: 'egg', enabled: false, constructor: Egg },
   { id: 'laser', enabled: false, constructor: Laser },
   { id: 'grenade', enabled: false, constructor: Grenade },
-  { id: 'c4', enabled: true, constructor: C4 }
+  { id: 'c4', enabled: false, constructor: C4 }
 ];
 
 const DEFAULT_SCORE_LIMIT = 3;
@@ -54,7 +53,7 @@ type PlayerConfig = {
   color: number;
 };
 
-type MapConfig = {
+export type MapConfig = {
   id: string;
   mapDataKey: string;
   tileMapName: string;
@@ -62,13 +61,13 @@ type MapConfig = {
   enabled: boolean;
 };
 
-type ItemConfig = {
+export type ItemConfig = {
   id: string;
   enabled: boolean;
   constructor: Constructor<Collectable>;
 };
 
-export default class SettingsManager {
+export class SettingsManager {
   playerSettings: PlayerConfig[];
   maps: MapConfig[];
   items: ItemConfig[];

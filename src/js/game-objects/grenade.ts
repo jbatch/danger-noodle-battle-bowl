@@ -1,10 +1,9 @@
 'use strict';
 
 import 'phaser';
-import { Collectable } from './collectable';
+import { Collectable, Collider } from './interfaces';
 import EventManager from '../util/event-manager';
 import { Snake } from './snake';
-import Collider from './collider';
 
 type Props = {
   scene: Phaser.Scene;
@@ -32,7 +31,11 @@ export class Grenade extends Phaser.GameObjects.Image implements Collectable {
   }
 
   collect(player: Snake) {
-    this.eventManager.emit('ITEM_COLLECTED', {player: player.id, spawnId: this.spawnId, item: 'grenade'});
+    this.eventManager.emit('ITEM_COLLECTED', {
+      player: player.id,
+      spawnId: this.spawnId,
+      item: 'grenade'
+    });
     this.destroy();
   }
 }
@@ -67,10 +70,10 @@ export class ThrownGrenade extends Phaser.GameObjects.Image {
     });
     this.eventManager = EventManager.getInstance();
     this.scene.physics.world.enable(this);
-    
+
     var body = this.body as Phaser.Physics.Arcade.Body;
-    
-    body.setBounce(1,1);
+
+    body.setBounce(1, 1);
     body.setAllowGravity(false);
     body.setCircle(5);
     body.setOffset(this.width / 2, this.height / 2);
@@ -121,7 +124,7 @@ export class Explosion extends Phaser.GameObjects.Image implements Collider {
     body.setAllowGravity(false);
     body.setOffset(this.width / 2, this.height / 2);
     body.setCircle(5);
-    
+
     // body.center
 
     var tween = scene.tweens.add({
@@ -132,9 +135,7 @@ export class Explosion extends Phaser.GameObjects.Image implements Collider {
       repeat: 0, // -1: infinity
       yoyo: true,
       onUpdate: () => {
-        
-          this.body.setCircle(this.r, -this.r, -this.r);
-        
+        this.body.setCircle(this.r, -this.r, -this.r);
       },
       onUpdateScope: this,
       onComplete: () => this.destroy(),
@@ -148,5 +149,5 @@ export class Explosion extends Phaser.GameObjects.Image implements Collider {
 
   onWallCollide() {}
   onPlayerBodyCollide() {}
-  onPlayerHeadCollide(){}
+  onPlayerHeadCollide() {}
 }

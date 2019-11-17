@@ -1,11 +1,9 @@
 'use strict';
 
 import 'phaser';
-import { Collectable } from './collectable';
+import { Collectable, Collider } from './interfaces';
 import EventManager from '../util/event-manager';
 import { Snake } from './snake';
-import Collider from './collider';
-import KeyCodes from 'phaser/src/input/keyboard/keys/KeyCodes';
 import { Activateable } from './interfaces';
 
 type Props = {

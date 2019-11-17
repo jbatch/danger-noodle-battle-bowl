@@ -4,8 +4,7 @@ import 'phaser';
 import { StateManager } from '../util/state-manager';
 import EventManager from '../util/event-manager';
 import SceneManager from '../util/scene-manager';
-import SettingsManager from '../util/settings-manager';
-import { runInThisContext } from 'vm';
+import { SettingsManager } from '../util/settings-manager';
 
 export default class ScoreScene extends Phaser.Scene {
   stateManager: StateManager;
@@ -109,9 +108,7 @@ export default class ScoreScene extends Phaser.Scene {
     }
   }
 
-  update() {
-  
-  }
+  update() {}
 }
 
 export class ScoreSceneItem {

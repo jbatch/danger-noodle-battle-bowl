@@ -1,11 +1,9 @@
 'use strict';
 
 import 'phaser';
-import { Collectable } from './collectable';
+import { Collectable, Collider } from './interfaces';
 import EventManager from '../util/event-manager';
 import { Snake } from './snake';
-import { brotliDecompress } from 'zlib';
-import Collider from './collider';
 
 type Props = {
   scene: Phaser.Scene;
