@@ -33,6 +33,7 @@ export default class PlayerManager {
     const players = this.players.map(p => p.id);
     this.eventManager.removeAllListeners('EGG_COLLECTED');
     this.eventManager.removeAllListeners('LASER_COLLECTED');
+    this.eventManager.removeAllListeners('GRENADE_COLLECTED');
     for(var player of this.players) {
       
     }

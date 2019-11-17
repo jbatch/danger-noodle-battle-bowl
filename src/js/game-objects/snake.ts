@@ -5,6 +5,7 @@ import Player from './player';
 import EventManager from '../util/event-manager';
 import { Collectable } from './collectable';
 import { Laser, LaserBeam } from './laser';
+import {ThrownGrenade} from './grenade';
 
 var FOLLOW_DISTANCE = 10;
 
@@ -137,6 +138,7 @@ export class Snake {
     this.eventManager = EventManager.getInstance();
     this.eventManager.on('EGG_COLLECTED', this.handleEggCollected, this);
     this.eventManager.on('LASER_COLLECTED', this.handleLaserCollected, this);
+    this.eventManager.on('GRENADE_COLLECTED', this.handleGrenadeCollected, this);
     this.moving = false;
     this.jumping = false;
     this.alive = true;
@@ -193,7 +195,19 @@ export class Snake {
       this.heldItem = this.scene.add
         .image(this.head.x, this.head.y, 'laser')
         .setScale(0.5)
-        .setOrigin(1, 1);
+        .setOrigin(1,1);
+    }
+  }
+
+  handleGrenadeCollected(playerId: string) {
+    if (this.heldItem != undefined) {
+      this.heldItem.destroy();
+    }
+    if (playerId === this.id) {
+      this.heldItem = this.scene.add
+        .image(this.head.x, this.head.y, 'grenade')
+        .setScale(0.5)
+        .setOrigin(1,1);
     }
   }
 
@@ -220,7 +234,7 @@ export class Snake {
     this.tail = newBody;
     this.scene.add.existing(newBody);
     this.eventManager.emit('NEW_BODY', newBody);
-    this.speed += 2;
+    this.speed += 4;
   }
 
   useItem() {
@@ -229,11 +243,18 @@ export class Snake {
       case 'laser':
         new LaserBeam({
           scene: this.scene,
-          x: this.head.x,
-          y: this.head.y,
+          x: this.head.x + this.head.body.velocity.normalize().x * 30,
+          y: this.head.y + this.head.body.velocity.normalize().y * 30,
           angle: this.angle
         });
         break;
+        case 'grenade':
+          new ThrownGrenade({
+            scene: this.scene,
+            x: this.head.x + this.head.body.velocity.normalize().x * 30,
+            y: this.head.y + this.head.body.velocity.normalize().y * 30,
+            angle: this.angle
+          })
     }
     this.heldItem.destroy();
     this.heldItem = undefined;
@@ -289,14 +310,17 @@ export class Snake {
         );
       }
     }
-    if (this.left.isDown) {
+    if (this.left.isDown && !this.jumping) {
       this.angle -= this.turnSpeed;
     }
-    if (this.right.isDown) {
+    if (this.right.isDown && !this.jumping) {
       this.angle += this.turnSpeed;
     }
     if (this.heldItem) {
-      this.heldItem.setPosition(this.head.body.x, this.head.body.y);
+      this.heldItem.setPosition(
+        this.head.x ,
+        this.head.y 
+      );
     }
     if (this.moving) {
       this.scene.physics.velocityFromAngle(

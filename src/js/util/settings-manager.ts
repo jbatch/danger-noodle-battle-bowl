@@ -3,7 +3,8 @@
 import 'phaser';
 import Map from '../game-objects/map';
 import Egg from '../game-objects/egg';
-import {Laser} from '../game-objects/laser';
+import { Grenade } from '../game-objects/grenade';
+import { Laser } from '../game-objects/laser';
 import { Constructor, Collectable } from '../game-objects/collectable';
 
 var instance: SettingsManager;
@@ -38,8 +39,9 @@ const DEFAULT_MAP_SETTINGS = [
 ];
 
 const DEFAULT_ITEM_SETTINGS = [
-  { id: 'egg', enabled: true, constructor: Egg },
-  { id: 'laser', enabled: true, constructor: Laser }
+  { id: 'egg', enabled: false, constructor: Egg },
+  { id: 'laser', enabled: false, constructor: Laser },
+  { id: 'grenade', enabled: true, constructor: Grenade }
 ];
 
 const DEFAULT_SCORE_LIMIT = 3;

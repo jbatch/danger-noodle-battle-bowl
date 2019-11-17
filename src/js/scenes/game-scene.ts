@@ -11,6 +11,7 @@ import Player from '../game-objects/player';
 import { Snake, Head, Body } from '../game-objects/snake';
 import { Collectable } from '../game-objects/collectable';
 import { LaserBeam } from '../game-objects/laser';
+import Collider from '../game-objects/collider';
 
 export default class GameScene extends Phaser.Scene {
   eventManager: EventManager;
@@ -34,6 +35,7 @@ export default class GameScene extends Phaser.Scene {
     this.load.image('tilemap', './media/map-tilesheet.png');
     this.load.image('egg', './media/egg.png');
     this.load.image('laser', './media/laser.png');
+    this.load.image('grenade', './media/grenade.png');
     this.load.tilemapTiledJSON('mapdata-1', './data/map-1.json');
     this.load.tilemapTiledJSON('mapdata-2', './data/map-2.json');
   }
@@ -60,7 +62,11 @@ export default class GameScene extends Phaser.Scene {
       this.eventManager.on('PLAYER_JOIN', this.playerJoin, this);
       this.eventManager.on('NEW_BODY', (b: Body) => this.bodies.add(b), this);
       this.eventManager.on('PLAYER_DEATH', this.checkForRoundOver, this);
-      this.eventManager.on('NEW_COLLIDER', c => this.colliders.add(c), this);
+      this.eventManager.on(
+        'NEW_COLLIDER',
+        (c: Collider & Phaser.GameObjects.GameObject) => this.colliders.add(c),
+        this
+      );
     }
   }
 
@@ -113,14 +119,17 @@ export default class GameScene extends Phaser.Scene {
     this.physics.add.overlap(
       this.heads,
       this.colliders,
-      (head: Head, collider: any) => head.parent.collide(),
+      (head: Head, collider: Collider & Phaser.GameObjects.GameObject) => {
+        head.parent.collide();
+        collider.onPlayerHeadCollide();
+      },
       (head: Head, collider: any) => !head.parent.jumping
     );
     this.physics.add.collider(
       this.map.staticLayer,
       this.colliders,
-      (collider: any, wall: any) => {
-        collider.collideWall();
+      (collider: Collider & Phaser.GameObjects.GameObject, wall: any) => {
+        collider.onWallCollide();
       },
       () => true,
       this
@@ -135,11 +144,21 @@ export default class GameScene extends Phaser.Scene {
       state.playerGainPoint(snakesAlive[0].id);
       if (state.playerAboveScore(this.settingsManager.scoreLimit)) {
         // Game Over
-        this.time.delayedCall(1000, () => this.sceneManager.showGameOver(this.scene),undefined, this);
+        this.time.delayedCall(
+          1000,
+          () => this.sceneManager.showGameOver(this.scene),
+          undefined,
+          this
+        );
         return;
       }
       // Round over
-      this.time.delayedCall(1000, () => this.sceneManager.showScore(this.scene),undefined, this);
+      this.time.delayedCall(
+        1000,
+        () => this.sceneManager.showScore(this.scene),
+        undefined,
+        this
+      );
     }
     if (snakesAlive.length === 0) {
       // Only one player, no points given.
@@ -164,7 +183,8 @@ export default class GameScene extends Phaser.Scene {
       this.map.spawnCollectable();
     }
     if (Phaser.Input.Keyboard.JustDown(this.input.keyboard.addKey('G'))) {
-      this.snakes.forEach((snake: Snake) => snake.grow());
+      // this.snakes.forEach((snake: Snake) => snake.grow5());
+      this.snakes[0].grow5();
     }
     if (Phaser.Input.Keyboard.JustDown(this.input.keyboard.addKey('R'))) {
       this.scene.restart();

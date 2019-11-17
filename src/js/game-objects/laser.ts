@@ -5,6 +5,7 @@ import { Collectable } from './collectable';
 import EventManager from '../util/event-manager';
 import { Snake } from './snake';
 import { brotliDecompress } from 'zlib';
+import Collider from './collider';
 
 type Props = {
   scene: Phaser.Scene;
@@ -40,7 +41,7 @@ type BeamProps = {
   y: number;
   angle: number;
 };
-export class LaserBeam extends Phaser.GameObjects.Image {
+export class LaserBeam extends Phaser.GameObjects.Image implements Collider{
   public body!: Phaser.Physics.Arcade.Body;
   eventManager: EventManager;
   x: number;
@@ -75,18 +76,15 @@ export class LaserBeam extends Phaser.GameObjects.Image {
     this.eventManager.emit('NEW_COLLIDER', this);
   }
 
-  collideWall() {
-    console.log('bounce')
+  onWallCollide() {
     if(this.bounces <= 0) {
       this.destroy();
     }
     this.bounces--;
   }
 
-  blah() {
-    console.log('destroying laser');
-    this.destroy();
-  }
+  onPlayerBodyCollide() {}
+  onPlayerHeadCollide(){}
 
   update() {
 
