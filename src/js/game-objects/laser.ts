@@ -11,14 +11,17 @@ type Props = {
   scene: Phaser.Scene;
   x: number;
   y: number;
+  spawnId: number;
   texture?: string;
   frame?: string | integer;
 };
 
 export class Laser extends Phaser.GameObjects.Image implements Collectable {
+  spawnId: number;
   eventManager: EventManager;
-  constructor({ scene, x, y, texture, frame }: Props) {
+  constructor({ scene, x, y, spawnId, texture, frame }: Props) {
     super(scene, x, y, texture || 'laser', frame);
+    this.spawnId = spawnId;
     this.eventManager = EventManager.getInstance();
     this.scene.physics.world.enable(this);
     var body = this.body as Phaser.Physics.Arcade.Body;
@@ -30,7 +33,7 @@ export class Laser extends Phaser.GameObjects.Image implements Collectable {
   }
 
   collect(player: Snake) {
-    this.eventManager.emit('LASER_COLLECTED', player.id);
+    this.eventManager.emit('ITEM_COLLECTED', {player: player.id, spawnId: this.spawnId, item: 'laser'});
     this.destroy();
   }
 }

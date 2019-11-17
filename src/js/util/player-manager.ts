@@ -31,11 +31,18 @@ export default class PlayerManager {
 
   resetPlayers() {
     const players = this.players.map(p => p.id);
-    this.eventManager.removeAllListeners('EGG_COLLECTED');
-    this.eventManager.removeAllListeners('LASER_COLLECTED');
-    this.eventManager.removeAllListeners('GRENADE_COLLECTED');
-    for(var player of this.players) {
-      
+
+    for (var player of this.players) {
+      this.eventManager.removeListener(
+        'EGG_COLLECTED',
+        player.snake.handleEggCollected,
+        player.snake
+      );
+      this.eventManager.removeListener(
+        'ITEM_COLLECTED',
+        player.snake.handleItemCollected,
+        player.snake
+      );
     }
     this.players = [];
     for (var id of players) {

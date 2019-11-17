@@ -33,7 +33,6 @@ export default class SceneManager {
   }
 
   showScore(scenePlugin: Phaser.Scenes.ScenePlugin) {
-    console.log('Show Score')
     scenePlugin.switch('Score');
   }
 
@@ -42,7 +41,6 @@ export default class SceneManager {
   }
 
   nextMap(scenePlugin: Phaser.Scenes.ScenePlugin) {
-    
     const currentMap = this.stateManager.state.getCurrentMap();
     const allMaps = this.settingsManager.getEnabledMaps();
   

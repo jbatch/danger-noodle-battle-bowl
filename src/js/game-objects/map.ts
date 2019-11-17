@@ -4,11 +4,13 @@ import { Scene } from 'phaser';
 
 import Egg from './egg';
 import SettingsManager from '../util/settings-manager';
+import EventManager from '../util/event-manager';
 
 type ObjectData = { [key: string]: any };
 
 export default class Map {
   settingsManager: SettingsManager;
+  eventManager: EventManager;
   scene: Scene;
   dataKey: string;
   tileMapName: string;
@@ -16,10 +18,11 @@ export default class Map {
   collectables: Phaser.GameObjects.Group;
   staticLayer: Phaser.Tilemaps.StaticTilemapLayer;
   playerSpawns: { x: number; y: number; dir: string }[];
-  collectableSpawns: { x: number; y: number }[];
+  collectableSpawns: { x: number; y: number, full: boolean, id: number }[];
   constructor(scene: Phaser.Scene, mapId: string) {
     this.scene = scene;
     this.settingsManager = SettingsManager.getInstance();
+    this.eventManager = EventManager.getInstance();
     this.dataKey = this.settingsManager.getMapConfig(mapId).mapDataKey;
     this.tileMapName = this.settingsManager.getMapConfig(mapId).tileMapName;
     this.tileMapKey = this.settingsManager.getMapConfig(mapId).tileMapKey;
@@ -27,6 +30,13 @@ export default class Map {
     this.playerSpawns = [];
     this.collectableSpawns = [];
     this.initMap();
+    this.eventManager.on('EGG_COLLECTED', this.resetSpawn, this);
+    this.eventManager.on('ITEM_COLLECTED', this.resetSpawn, this);
+  }
+
+  resetSpawn({spawnId}) {
+    console.log('reset Spwan', {spawnId, spawns: this.collectableSpawns});
+    this.collectableSpawns.find(s => s.id === spawnId).full = false;
   }
 
   initMap() {
@@ -61,25 +71,33 @@ export default class Map {
       {},
       this.scene
     );
+    var i = 0;
     for (var o of collectableObjects) {
-      this.collectableSpawns.push({ x: o.x, y: o.y });
+      this.collectableSpawns.push({ x: o.x, y: o.y, full: false, id:  i});
+      i++;
       o.destroy();
     }
   }
 
   spawnCollectable() {
-    const i = Phaser.Math.Between(0, this.collectableSpawns.length - 1);
+    const emptySpawns = this.collectableSpawns.filter(s => !s.full);
+    if(emptySpawns.length === 0 ) {
+      return;
+    }
+    const i = Phaser.Math.Between(0, emptySpawns.length - 1);
     const cIndex = Phaser.Math.Between(
       0,
       this.settingsManager.getEnabledItems().length - 1
     );
     const collectTypeClass = this.settingsManager.getEnabledItems()[cIndex];
+    emptySpawns[i].full = true;
     
     this.collectables.add(
       new collectTypeClass({
         scene: this.scene,
-        x: this.collectableSpawns[i].x,
-        y: this.collectableSpawns[i].y
+        x: emptySpawns[i].x,
+        y: emptySpawns[i].y,
+        spawnId: emptySpawns[i].id
       })
     );
   }

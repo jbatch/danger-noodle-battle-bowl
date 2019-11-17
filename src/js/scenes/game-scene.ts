@@ -36,6 +36,8 @@ export default class GameScene extends Phaser.Scene {
     this.load.image('egg', './media/egg.png');
     this.load.image('laser', './media/laser.png');
     this.load.image('grenade', './media/grenade.png');
+    this.load.image('c4', './media/c4.png');
+    this.load.image('remote', './media/remote.png');
     this.load.tilemapTiledJSON('mapdata-1', './data/map-1.json');
     this.load.tilemapTiledJSON('mapdata-2', './data/map-2.json');
   }
@@ -54,6 +56,7 @@ export default class GameScene extends Phaser.Scene {
     this.map = new Map(this, data.map ? data.map : 'map1');
     this.initPlayerEventListeners();
     this.initColliders();
+    this.initTimers();
     this.eventManager.emit('NEW_ROUND');
   }
 
@@ -134,6 +137,15 @@ export default class GameScene extends Phaser.Scene {
       () => true,
       this
     );
+  }
+
+  initTimers() {
+    var timer = this.time.addEvent({
+      delay: 2000,
+      callback: () => this.map.spawnCollectable(),
+      callbackScope: this,
+      loop: true
+    });
   }
 
   checkForRoundOver() {

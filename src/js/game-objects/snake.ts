@@ -3,9 +3,10 @@
 import 'phaser';
 import Player from './player';
 import EventManager from '../util/event-manager';
-import { Collectable } from './collectable';
+import { Collectable, Activateable } from './interfaces';
 import { Laser, LaserBeam } from './laser';
-import {ThrownGrenade} from './grenade';
+import { ThrownGrenade } from './grenade';
+import { PlacedC4 } from './c4';
 
 var FOLLOW_DISTANCE = 10;
 
@@ -132,13 +133,14 @@ export class Snake {
   speed: number;
   turnSpeed: number;
   heldItem: Phaser.GameObjects.Image;
+  placedItem: Phaser.GameObjects.Image & Activateable;
   constructor({ scene, player, color }: SnakeProps) {
     this.scene = scene;
     this.id = player.id;
     this.eventManager = EventManager.getInstance();
+
+    this.eventManager.on('ITEM_COLLECTED', this.handleItemCollected, this);
     this.eventManager.on('EGG_COLLECTED', this.handleEggCollected, this);
-    this.eventManager.on('LASER_COLLECTED', this.handleLaserCollected, this);
-    this.eventManager.on('GRENADE_COLLECTED', this.handleGrenadeCollected, this);
     this.moving = false;
     this.jumping = false;
     this.alive = true;
@@ -181,33 +183,26 @@ export class Snake {
     }
   }
 
-  handleEggCollected(playerId: string) {
+  handleItemCollected({ player: playerId, item: itemId }) {
+    if (playerId !== this.id) {
+      return;
+    }
+    if (this.placedItem != undefined) {
+      this.placedItem.activate();
+      this.placedItem = undefined;
+    }
+    if (this.heldItem != undefined) {
+      this.heldItem.destroy();
+    }
+    this.heldItem = this.scene.add
+      .image(this.head.x, this.head.y, itemId)
+      .setScale(0.5)
+      .setOrigin(1, 1);
+  }
+
+  handleEggCollected({ player: playerId }) {
     if (playerId === this.id) {
       this.grow5();
-    }
-  }
-
-  handleLaserCollected(playerId: string) {
-    if (this.heldItem != undefined) {
-      this.heldItem.destroy();
-    }
-    if (playerId === this.id) {
-      this.heldItem = this.scene.add
-        .image(this.head.x, this.head.y, 'laser')
-        .setScale(0.5)
-        .setOrigin(1,1);
-    }
-  }
-
-  handleGrenadeCollected(playerId: string) {
-    if (this.heldItem != undefined) {
-      this.heldItem.destroy();
-    }
-    if (playerId === this.id) {
-      this.heldItem = this.scene.add
-        .image(this.head.x, this.head.y, 'grenade')
-        .setScale(0.5)
-        .setOrigin(1,1);
     }
   }
 
@@ -238,7 +233,6 @@ export class Snake {
   }
 
   useItem() {
-    console.log(this.heldItem);
     switch (this.heldItem.texture.key) {
       case 'laser':
         new LaserBeam({
@@ -248,13 +242,30 @@ export class Snake {
           angle: this.angle
         });
         break;
-        case 'grenade':
-          new ThrownGrenade({
-            scene: this.scene,
-            x: this.head.x + this.head.body.velocity.normalize().x * 30,
-            y: this.head.y + this.head.body.velocity.normalize().y * 30,
-            angle: this.angle
-          })
+      case 'grenade':
+        new ThrownGrenade({
+          scene: this.scene,
+          x: this.head.x + this.head.body.velocity.normalize().x * 30,
+          y: this.head.y + this.head.body.velocity.normalize().y * 30,
+          angle: this.angle
+        });
+        break;
+      case 'c4':
+        this.placedItem = new PlacedC4({
+          scene: this.scene,
+          x: this.head.x + this.head.body.velocity.normalize().x * 30,
+          y: this.head.y + this.head.body.velocity.normalize().y * 30
+        });
+        this.heldItem.destroy();
+        this.heldItem = this.scene.add
+          .image(this.head.x, this.head.y, 'remote')
+          .setScale(0.5)
+          .setOrigin(1, 1);
+        return; // return early to keep hand alive
+      case 'remote':
+        this.placedItem.activate();
+        this.placedItem = undefined;
+        break;
     }
     this.heldItem.destroy();
     this.heldItem = undefined;
@@ -317,10 +328,7 @@ export class Snake {
       this.angle += this.turnSpeed;
     }
     if (this.heldItem) {
-      this.heldItem.setPosition(
-        this.head.x ,
-        this.head.y 
-      );
+      this.heldItem.setPosition(this.head.x, this.head.y);
     }
     if (this.moving) {
       this.scene.physics.velocityFromAngle(

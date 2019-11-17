@@ -6,6 +6,7 @@ import Egg from '../game-objects/egg';
 import { Grenade } from '../game-objects/grenade';
 import { Laser } from '../game-objects/laser';
 import { Constructor, Collectable } from '../game-objects/collectable';
+import { C4 } from '../game-objects/c4';
 
 var instance: SettingsManager;
 
@@ -34,14 +35,15 @@ const DEFAULT_MAP_SETTINGS = [
     mapDataKey: 'mapdata-2',
     tileMapName: 'map-tilesheet',
     tileMapKey: 'tilemap',
-    enabled: true
+    enabled: false
   }
 ];
 
 const DEFAULT_ITEM_SETTINGS = [
   { id: 'egg', enabled: false, constructor: Egg },
   { id: 'laser', enabled: false, constructor: Laser },
-  { id: 'grenade', enabled: true, constructor: Grenade }
+  { id: 'grenade', enabled: false, constructor: Grenade },
+  { id: 'c4', enabled: true, constructor: C4 }
 ];
 
 const DEFAULT_SCORE_LIMIT = 3;
