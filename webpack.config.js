@@ -3,7 +3,8 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 var CopyWebpackPlugin = require('copy-webpack-plugin');
 
 const htmlPlugin = new HtmlWebpackPlugin({
-  template: 'index.html'
+  template: 'index.html',
+  favicon: 'assets/media/favicon.png'
 });
 
 const copyPlugin = new CopyWebpackPlugin([
