@@ -9,7 +9,7 @@
     "build:prod": "./node_modules/.bin/webpack -p",
     "watch": "./node_modules/.bin/webpack --watch",
     "dev": "./node_modules/.bin/webpack-dev-server",
-    "deploy": "git subtree push --prefix dist origin gh-pages"
+    "deploy": "git push origin `git subtree split --prefix dist master`:gh-pages --force"
   },
   "author": "a",
   "repository": {},
