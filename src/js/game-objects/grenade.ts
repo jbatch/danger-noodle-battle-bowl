@@ -45,6 +45,7 @@ type ThrownGrenadeProps = {
   x: number;
   y: number;
   angle: number;
+  speed: number;
 };
 export class ThrownGrenade extends Phaser.GameObjects.Image {
   public body!: Phaser.Physics.Arcade.Body;
@@ -52,11 +53,14 @@ export class ThrownGrenade extends Phaser.GameObjects.Image {
   x: number;
   y: number;
   angle: number;
-  constructor({ scene, x, y, angle }: ThrownGrenadeProps) {
+  speed: number;
+  
+  constructor({ scene, x, y, angle,speed }: ThrownGrenadeProps) {
     super(scene, x, y, 'grenade');
     this.x = x;
     this.y = y;
     this.angle = angle;
+    this.speed = speed;
     this.setScale(0.5);
     var tween = scene.tweens.add({
       targets: this,
@@ -79,14 +83,14 @@ export class ThrownGrenade extends Phaser.GameObjects.Image {
     body.setOffset(this.width / 2, this.height / 2);
     body.setCollideWorldBounds(true);
     this.scene.add.existing(this);
-    this.scene.physics.velocityFromAngle(this.angle, 200, body.velocity);
+    this.scene.physics.velocityFromAngle(this.angle, speed, body.velocity);
   }
 
   explode() {
     new Explosion({
       scene: this.scene,
-      x: this.body.x + 30,
-      y: this.body.y + 30
+      x: this.body.x,
+      y: this.body.y
     });
     this.destroy();
   }
@@ -99,7 +103,7 @@ type ExplosionProps = {
   x: number;
   y: number;
 };
-export class Explosion extends Phaser.GameObjects.Image implements Collider {
+export class Explosion extends Phaser.GameObjects.Sprite implements Collider {
   public body!: Phaser.Physics.Arcade.Body;
   eventManager: EventManager;
   x: number;
@@ -107,14 +111,15 @@ export class Explosion extends Phaser.GameObjects.Image implements Collider {
   r: number;
 
   constructor({ scene, x, y }: ExplosionProps) {
-    super(scene, x, y, 'grenade');
+    super(scene, x, y, 'explosion');
 
     this.x = x;
     this.y = y;
     this.r = 5;
-    this.setAlpha(0);
-    this.setScale(0.5);
+    this.setAlpha(1);
+    this.setScale(1);
     this.setOrigin(0.5, 0.5);
+    this.play('explode');
 
     this.eventManager = EventManager.getInstance();
     this.scene.physics.world.enable(this);
@@ -122,27 +127,27 @@ export class Explosion extends Phaser.GameObjects.Image implements Collider {
     var body = this.body as Phaser.Physics.Arcade.Body;
 
     body.setAllowGravity(false);
-    body.setOffset(this.width / 2, this.height / 2);
     body.setCircle(5);
-
-    // body.center
+    body.setOffset(this.displayWidth / 2, this.displayHeight / 2);
 
     var tween = scene.tweens.add({
       targets: this,
-      r: { from: 5, to: 60 },
+      r: { from: 1, to: 20 },
       ease: 'Linear', // 'Cubic', 'Elastic', 'Bounce', 'Back'
-      duration: 100,
+      duration: 300,
       repeat: 0, // -1: infinity
       yoyo: true,
       onUpdate: () => {
-        this.body.setCircle(this.r, -this.r, -this.r);
+        this.body.setCircle(
+          this.r,
+          this.displayWidth / 2 - this.r,
+          this.displayHeight / 2 - this.r
+        );
       },
       onUpdateScope: this,
       onComplete: () => this.destroy(),
       onCompleteScope: this
     });
-    // body.setOffset(this.width/2, this.height/2);
-    body.setCollideWorldBounds(true);
     this.scene.add.existing(this);
     this.eventManager.emit('NEW_COLLIDER', this);
   }

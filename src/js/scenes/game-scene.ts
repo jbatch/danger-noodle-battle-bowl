@@ -36,6 +36,10 @@ export default class GameScene extends Phaser.Scene {
     this.load.image('grenade', './media/grenade.png');
     this.load.image('c4', './media/c4.png');
     this.load.image('remote', './media/remote.png');
+    this.load.spritesheet('explosion', './media/explosion.png', {
+      frameWidth: 64,
+      frameHeight: 64
+    });
     this.load.tilemapTiledJSON('mapdata-1', './data/map-1.json');
     this.load.tilemapTiledJSON('mapdata-2', './data/map-2.json');
   }
@@ -53,6 +57,7 @@ export default class GameScene extends Phaser.Scene {
     this.colliders = this.add.group();
     this.map = new Map(this, data.map ? data.map : 'map1');
     this.initPlayerEventListeners();
+    this.initAnimations();
     this.initColliders();
     this.initTimers();
     this.eventManager.emit('NEW_ROUND');
@@ -69,6 +74,21 @@ export default class GameScene extends Phaser.Scene {
         this
       );
     }
+  }
+
+  initAnimations() {
+    const explosionFrames = this.anims.generateFrameNumbers('explosion', {
+      start: 0,
+      end: 6
+    });
+    const explosionAnim = this.anims.create({
+      key: 'explode',
+      frames: explosionFrames,
+      frameRate: 8,
+      repeat: -1
+    });
+
+    console.log(explosionFrames, explosionAnim);
   }
 
   playerJoin(p: Player) {

@@ -41,8 +41,8 @@ const DEFAULT_MAP_SETTINGS = [
 const DEFAULT_ITEM_SETTINGS = [
   { id: 'egg', enabled: false, constructor: Egg },
   { id: 'laser', enabled: false, constructor: Laser },
-  { id: 'grenade', enabled: false, constructor: Grenade },
-  { id: 'c4', enabled: true, constructor: C4 }
+  { id: 'grenade', enabled: true, constructor: Grenade },
+  { id: 'c4', enabled: false, constructor: C4 }
 ];
 
 const DEFAULT_SCORE_LIMIT = 3;

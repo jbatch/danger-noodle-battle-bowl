@@ -247,7 +247,8 @@ export class Snake {
           scene: this.scene,
           x: this.head.x + this.head.body.velocity.normalize().x * 30,
           y: this.head.y + this.head.body.velocity.normalize().y * 30,
-          angle: this.angle
+          angle: this.angle,
+          speed: this.head.body.speed *1.75
         });
         break;
       case 'c4':
