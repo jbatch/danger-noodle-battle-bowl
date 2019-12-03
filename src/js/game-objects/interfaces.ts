@@ -17,6 +17,7 @@ export interface Collectable extends Phaser.GameObjects.GameObject{
 }
 
 export interface Collider {
+  owner?: string;
   onWallCollide();
   onPlayerBodyCollide();
   onPlayerHeadCollide();

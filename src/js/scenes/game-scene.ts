@@ -141,7 +141,7 @@ export default class GameScene extends Phaser.Scene {
       this.heads,
       this.colliders,
       (head: Head, collider: Collider & Phaser.GameObjects.GameObject) => {
-        head.parent.collide();
+        head.parent.collideCollider(collider);
         collider.onPlayerHeadCollide();
       },
       (head: Head, collider: any) => !head.parent.jumping

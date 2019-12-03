@@ -3,10 +3,11 @@
 import 'phaser';
 import Player from './player';
 import EventManager from '../util/event-manager';
-import { Activateable } from './interfaces';
+import { Activateable, Collider } from './interfaces';
 import { LaserBeam } from './laser';
 import { ThrownGrenade } from './grenade';
 import { PlacedC4 } from './c4';
+import { Impact } from './impact';
 
 var FOLLOW_DISTANCE = 10;
 
@@ -132,6 +133,7 @@ export class Snake {
   angle: number;
   speed: number;
   turnSpeed: number;
+  jumpTimer: Phaser.Time.TimerEvent;
   heldItem: Phaser.GameObjects.Image;
   placedItem: Phaser.GameObjects.Image & Activateable;
   constructor({ scene, player, color }: SnakeProps) {
@@ -151,6 +153,7 @@ export class Snake {
     this.angle = 0;
     this.speed = 100;
     this.turnSpeed = 5;
+    this.jumpTimer = null;
 
     this.bodies = [];
     this.head = new Head({
@@ -248,7 +251,7 @@ export class Snake {
           x: this.head.x + this.head.body.velocity.normalize().x * 30,
           y: this.head.y + this.head.body.velocity.normalize().y * 30,
           angle: this.angle,
-          speed: this.head.body.speed *1.75
+          speed: this.head.body.speed * 1.75
         });
         break;
       case 'c4':
@@ -281,6 +284,13 @@ export class Snake {
     }
   }
 
+  collideCollider(collider: Collider) {
+    if (collider.owner && collider.owner === this.id) {
+      return;
+    }
+    this.collide();
+  }
+
   collideBody(body: Body) {
     // Ignore hits with a heads first body part
     if (body.parent === this && body === this.head.next) {
@@ -299,6 +309,17 @@ export class Snake {
     this.head.freeze();
   }
 
+  createImpact() {
+    new Impact({
+      scene: this.scene,
+      x: this.head.x,
+      y: this.head.y,
+      owner: this.id,
+      startingRadius: 5,
+      maxRadius: 20
+    });
+  }
+
   update(time, delta) {
     if (this.moving && this.invulnerabilityRemaining > 0) {
       this.head.fillAlpha = 0.5;
@@ -312,11 +333,18 @@ export class Snake {
         this.grow5();
       } else if (this.heldItem) {
         this.useItem();
+      } else if (this.jumping) {
+        this.jumping = false;
+        this.jumpTimer = null;
+        this.createImpact();
       } else {
         this.jumping = true;
-        var timer = this.scene.time.delayedCall(
+        this.jumpTimer = this.scene.time.delayedCall(
           1000,
-          () => (this.jumping = false),
+          () => {
+            this.jumping = false;
+            this.jumping = null;
+          },
           undefined,
           this
         );
