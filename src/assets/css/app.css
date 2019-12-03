@@ -1,10 +1,14 @@
+h1 {
+  text-align: center;
+}
+
 body {
   background-color: bisque;
 }
 
 #wrapper {
   display: flex;
-  height: 100vh;
+  height: 70vh;
   justify-content: center;
   align-items: center;
 }

@@ -11,6 +11,10 @@ var config: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,
   width: 960,
   height: 640,
+  scale: {
+    mode: Phaser.Scale.FIT,
+    autoCenter: Phaser.Scale.CENTER_BOTH
+  },
   parent: 'main',
   scene: [GameScene, SettingsScene, ScoreScene, GameOverScene],
   physics: {

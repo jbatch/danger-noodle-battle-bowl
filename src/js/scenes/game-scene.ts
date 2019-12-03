@@ -226,5 +226,15 @@ export default class GameScene extends Phaser.Scene {
       this.sceneManager.openSettings(this.scene);
       this.input.keyboard.addKey('ESC').reset();
     }
+    if (Phaser.Input.Keyboard.JustDown(this.input.keyboard.addKey('F'))) {
+      if(this.scale.isFullscreen){
+        this.scale.toggleFullscreen();
+        window.document.getElementById('main').style.height = '70vh';
+      } else {
+        this.scale.toggleFullscreen();
+        window.document.getElementById('main').style.height = '100vh';
+      }
+      
+    }
   }
 }
