@@ -190,6 +190,7 @@ export class Snake {
     if (playerId !== this.id) {
       return;
     }
+    this.scene.sound.play('pickup_sound');
     if (this.placedItem != undefined) {
       this.placedItem.activate();
       this.placedItem = undefined;
@@ -246,6 +247,7 @@ export class Snake {
         });
         break;
       case 'grenade':
+        this.scene.sound.play('throw_sound');
         new ThrownGrenade({
           scene: this.scene,
           x: this.head.x + this.head.body.velocity.normalize().x * 30,
@@ -339,6 +341,7 @@ export class Snake {
         this.createImpact();
       } else {
         this.jumping = true;
+        this.scene.sound.play('jump_sound');
         this.jumpTimer = this.scene.time.delayedCall(
           1000,
           () => {

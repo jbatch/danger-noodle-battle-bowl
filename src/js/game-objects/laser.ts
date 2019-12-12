@@ -66,6 +66,8 @@ export class LaserBeam extends Phaser.GameObjects.Image implements Collider{
     body.setOffset(0);
     body.setCollideWorldBounds(true);
     this.scene.add.existing(this);
+
+    this.scene.sound.play('laser_sound');
     this.scene.physics.velocityFromAngle(
       this.angle,
       300,

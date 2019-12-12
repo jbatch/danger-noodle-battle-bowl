@@ -42,6 +42,12 @@ export default class GameScene extends Phaser.Scene {
     });
     this.load.tilemapTiledJSON('mapdata-1', './data/map-1.json');
     this.load.tilemapTiledJSON('mapdata-2', './data/map-2.json');
+    this.load.audio('jump_sound', './sounds/Jump_med.wav');
+    this.load.audio('pickup_sound', './sounds/Pickup.wav');
+    this.load.audio('laser_sound', './sounds/Laser_Shoot.wav');
+    this.load.audio('explosion_sound', './sounds/Explosion.wav');
+    this.load.audio('powerup_sound', './sounds/Powerup.wav');
+    this.load.audio('throw_sound', './sounds/Throw.wav');
   }
 
   create(data) {

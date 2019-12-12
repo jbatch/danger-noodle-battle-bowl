@@ -124,6 +124,8 @@ export class Explosion extends Phaser.GameObjects.Sprite implements Collider {
     this.eventManager = EventManager.getInstance();
     this.scene.physics.world.enable(this);
 
+    this.scene.sound.play('explosion_sound');
+
     var body = this.body as Phaser.Physics.Arcade.Body;
 
     body.setAllowGravity(false);
