@@ -20,7 +20,6 @@ module.exports = {
   },
   context: path.resolve(__dirname, 'src'),
   mode: 'development',
-  watch: true,
   devServer: {
     contentBase: path.resolve(__dirname, './src/assets'),
     stats: 'errors-only',
